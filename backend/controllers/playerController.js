@@ -1,4 +1,4 @@
-const Match = require('../models/Match');
+const Match = require('../models/match');
 const mongoose = require('mongoose');
 
 // ✅ Create Match

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Player = require('../models/Player');
-const Match = require('../models/Match');
+const Player = require('../models/player');
+const Match = require('../models/match');
 
 // ✅ Player Profile – used for login and profile
 router.get('/profile/:playerId', async (req, res) => {

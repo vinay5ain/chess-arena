@@ -1,5 +1,5 @@
-const Player = require('./models/player');
-const Match = require('./models/match');
+const Player = require('../models/player');
+const Match = require('../models/match');
 const Tournament = require('../models/tournament');
 
 // Helper to shuffle players

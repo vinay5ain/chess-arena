@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const Tournament = require('./models/tournament');
-const Player = require('./models/player');
+const Tournament = require('../models/tournament');
+const Player = require('../models/player');
 
 // ✅ Admin login
 const adminLogin = async (req, res) => {
