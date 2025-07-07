@@ -1,7 +1,7 @@
 // backend/controllers/roundController.js
-const Tournament = require('../models/Tournament');
-const Player = require('../models/Player');
-const Match = require('../models/Match');
+const Tournament = require('../models/tournament');
+const Player = require('./models/player');
+const Match = require('./models/match');
 
 // Get leaderboard for a tournament (sorted by points)
 const getLeaderboard = async (req, res) => {

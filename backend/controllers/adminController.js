@@ -1,6 +1,6 @@
-const Player = require('../models/Player');
-const Match = require('../models/Match');
-const Tournament = require('../models/Tournament');
+const Player = require('./models/player');
+const Match = require('./models/match');
+const Tournament = require('../models/tournament');
 
 // Helper to shuffle players
 const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
