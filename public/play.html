@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Live Match - Chess Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Chessboard.js CSS via HTTPS -->
+  <link rel="stylesheet" href="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e0f7fa;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+    }
+
+    h1 {
+      margin: 0;
+    }
+
+    #board {
+      width: 400px;
+      margin: 30px auto;
+    }
+
+    .controls {
+      margin-top: 20px;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .resign-btn {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .claim-btn {
+      background-color: #3498db;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Live Match</h1>
+    <p id="status">Loading...</p>
+  </header>
+
+  <div id="board"></div>
+
+  <div class="controls">
+    <button class="resign-btn" onclick="resign()">Resign</button>
+    <button class="claim-btn" onclick="claim()">Claim Victory</button>
+  </div>
+
+  <!-- Chess.js + Chessboard.js via HTTPS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+  <script>
+    const game = new Chess();
+
+    const board = Chessboard('board', {
+      draggable: true,
+      position: 'start',
+      onDrop: function (source, target, piece, newPos, oldPos, orientation) {
+        const move = game.move({
+          from: source,
+          to: target,
+          promotion: 'q' // always promote to a queen for simplicity
+        });
+
+        if (move === null) return 'snapback';
+
+        updateStatus();
+      }
+    });
+
+    function updateStatus() {
+      const statusEl = document.getElementById('status');
+      let status = '';
+
+      const moveColor = game.turn() === 'w' ? 'White' : 'Black';
+
+      if (game.in_checkmate()) {
+        status = 'Game over, ' + moveColor + ' is in checkmate.';
+      } else if (game.in_draw()) {
+        status = 'Game over, drawn position.';
+      } else {
+        status = moveColor + ' to move';
+
+        if (game.in_check()) {
+          status += ', in check';
+        }
+      }
+
+      statusEl.textContent = status;
+    }
+
+    function resign() {
+      alert('You resigned. Game over.');
+      game.reset();
+      board.position('start');
+      updateStatus();
+    }
+
+    function claim() {
+      alert('Victory claimed (Offline Mode).');
+      game.reset();
+      board.position('start');
+      updateStatus();
+    }
+
+    updateStatus();
+  </script>
+</body>
+</html>

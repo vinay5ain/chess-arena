@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Tournament</title>
+  <style>
+    :root {
+      accent-color: #2e7d32;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #fdfcf8;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+
+    header {
+      background: linear-gradient(90deg, #1c1c1c, #2d2d2d, #3a3a3a);
+      color: #f0f0f0;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      letter-spacing: 1px;
+    }
+
+    .login-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: #d4af37;
+      border: none;
+      color: #000;
+      padding: 8px 16px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .login-btn:hover {
+      background: #caa233;
+      transform: scale(1.05);
+    }
+
+    main {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 30px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    form label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #1c1c1c;
+    }
+
+    form input, form select {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #fefefe;
+      transition: border-color 0.2s;
+    }
+
+    form input:focus, form select:focus {
+      border-color: #2e7d32;
+      outline: none;
+    }
+
+    .create-btn {
+      margin-top: 25px;
+      width: 100%;
+      padding: 14px;
+      background: #2e7d32;
+      color: white;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    }
+
+    .create-btn:hover {
+      background: #1b5e20;
+      transform: translateY(-2px);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background: #fff;
+      margin: 10% auto;
+      padding: 25px;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    }
+
+    .modal-content input {
+      margin-top: 8px;
+      padding: 10px;
+      width: 100%;
+      font-size: 15px;
+      border-radius: 5px;
+      border: 1px solid #bbb;
+    }
+
+    .modal-content button {
+      background: #2e7d32;
+      color: white;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      margin-top: 15px;
+      width: 100%;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .modal-content button:hover {
+      background: #1b5e20;
+    }
+
+    .close {
+      position: absolute;
+      right: 15px;
+      top: 10px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #555;
+    }
+
+    ::selection {
+      background: #d4efdf;
+      color: #1b5e20;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Create a New Tournament</h1>
+    <button class="login-btn" onclick="openLogin()">Login</button>
+  </header>
+
+  <main>
+    <form onsubmit="handleCreate(event)">
+      <label for="tournament-name">Tournament Name:</label>
+      <input type="text" id="tournament-name" required />
+
+      <label for="password">Tournament Password:</label>
+      <input type="password" id="password" required />
+
+      <label for="tournament-type">Tournament Type:</label>
+      <select id="tournament-type">
+        <option value="public">Public</option>
+        <option value="private">Private</option>
+      </select>
+
+      <div id="private-fields" style="display:none;">
+        <label for="access-key">Access Key:</label>
+        <input type="text" id="access-key" />
+      </div>
+
+      <div id="public-fields">
+        <label for="entry-fee">Entry Fee:</label>
+        <input type="number" id="entry-fee" />
+      </div>
+
+      <label for="mode">Mode:</label>
+      <select id="mode">
+        <option value="online">Online</option>
+        <option value="offline">Offline</option>
+      </select>
+
+      <button type="submit" class="create-btn">Create Tournament</button>
+    </form>
+  </main>
+
+  <!-- Login Modal -->
+  <div class="modal" id="loginModal">
+    <div class="modal-content">
+      <span class="close" onclick="closeLogin()">&times;</span>
+      <h3>Tournament Admin Login</h3>
+      <label for="login-name">Tournament Name:</label>
+      <input type="text" id="login-name" />
+      <label for="login-pass">Tournament Password:</label>
+      <input type="password" id="login-pass" />
+      <button onclick="checkLogin()">Login</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('tournament-type').addEventListener('change', function () {
+      const isPrivate = this.value === 'private';
+      document.getElementById('private-fields').style.display = isPrivate ? 'block' : 'none';
+      document.getElementById('public-fields').style.display = isPrivate ? 'none' : 'block';
+    });
+
+    function openLogin() {
+      document.getElementById('loginModal').style.display = 'block';
+    }
+
+    function closeLogin() {
+      document.getElementById('loginModal').style.display = 'none';
+    }
+
+    async function checkLogin() {
+      const name = document.getElementById('login-name').value.trim();
+      const pass = document.getElementById('login-pass').value.trim();
+
+      if (!name || !pass) {
+        alert('❌ Enter tournament name and password');
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://127.0.0.1:5000/api/tournament/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tournamentName: name, password: pass })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert("❌ " + (data.message || "Login failed"));
+          return;
+        }
+
+        localStorage.setItem("tournamentId", data.tournament._id);
+        localStorage.setItem("tournamentName", data.tournament.tournamentName);
+        alert("✅ Logged in!");
+        window.location.href = "admin.html";
+
+      } catch (err) {
+        console.error("Login error:", err);
+        alert("❌ Network error.");
+      }
+    }
+
+    async function handleCreate(event) {
+      event.preventDefault();
+
+      const tournamentName = document.getElementById('tournament-name').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const isPrivate = document.getElementById('tournament-type').value === 'private';
+      const accessKey = document.getElementById('access-key').value.trim();
+      const entryFee = document.getElementById('entry-fee').value.trim();
+      const mode = document.getElementById('mode').value;
+
+      const payload = {
+        tournamentName,
+        organizerName: tournamentName,
+        isPrivate,
+        password,
+        mode,
+        accessKey: isPrivate ? accessKey : null,
+        entryFee: !isPrivate ? Number(entryFee) : null
+      };
+
+      try {
+        const res = await fetch('http://127.0.0.1:5000/api/tournament/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          alert('❌ ' + data.message);
+          return;
+        }
+
+        alert('✅ Tournament Created!');
+        localStorage.setItem("tournamentId", data.tournament._id);
+        window.location.href = "admin.html";
+
+      } catch (error) {
+        console.error("❌ Network error:", error);
+        alert("❌ Network error.");
+      }
+    }
+
+    window.onclick = function (e) {
+      const modal = document.getElementById('loginModal');
+      if (e.target === modal) modal.style.display = 'none';
+    };
+  </script>
+
+</body>
+</html>
