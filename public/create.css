@@ -1,0 +1,161 @@
+:root {
+  accent-color: #2e7d32;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #fdfcf8;
+  margin: 0;
+  padding: 0;
+  color: #222;
+}
+
+header {
+  background: linear-gradient(90deg, #1c1c1c, #2d2d2d, #3a3a3a);
+  color: #f0f0f0;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2.2rem;
+  letter-spacing: 1px;
+}
+
+.login-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: #d4af37;
+  border: none;
+  color: #000;
+  padding: 8px 16px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.login-btn:hover {
+  background: #caa233;
+  transform: scale(1.05);
+}
+
+main {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+form label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+  color: #1c1c1c;
+}
+
+form input, form select {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  margin-top: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fefefe;
+  transition: border-color 0.2s;
+}
+
+form input:focus, form select:focus {
+  border-color: #2e7d32;
+  outline: none;
+}
+
+.create-btn {
+  margin-top: 25px;
+  width: 100%;
+  padding: 14px;
+  background: #2e7d32;
+  color: white;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+
+.create-btn:hover {
+  background: #1b5e20;
+  transform: translateY(-2px);
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background: #fff;
+  margin: 10% auto;
+  padding: 25px;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.modal-content input {
+  margin-top: 8px;
+  padding: 10px;
+  width: 100%;
+  font-size: 15px;
+  border-radius: 5px;
+  border: 1px solid #bbb;
+}
+
+.modal-content button {
+  background: #2e7d32;
+  color: white;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  margin-top: 15px;
+  width: 100%;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.modal-content button:hover {
+  background: #1b5e20;
+}
+
+.close {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #555;
+}
+
+::selection {
+  background: #d4efdf;
+  color: #1b5e20;
+}
