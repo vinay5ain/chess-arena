@@ -7,7 +7,7 @@ const morgan = require('morgan');
 const path = require('path');
 const connectDB = require('./config/db');
 
-// Load .env variables
+// Load environment variables from .env file
 dotenv.config();
 
 // Connect to MongoDB
@@ -18,7 +18,7 @@ const app = express();
 // ✅ Middleware
 app.use(cors());
 app.use(express.json());
-app.use(morgan('dev')); // Optional: HTTP logs
+app.use(morgan('dev')); // Optional: logs all requests
 
 // 📥 Global Debug Logger (for all requests)
 app.use((req, res, next) => {
@@ -40,12 +40,12 @@ app.use('/api/knockout', require('./routes/knockoutRoutes'));
 // ✅ Serve frontend from public folder
 app.use(express.static(path.join(__dirname, '../public')));
 
-// 🏠 Root health check
+// 🏠 Root route – health check
 app.get('/', (req, res) => {
   res.send('🎉 Chess Tournament Backend is Live!');
 });
 
-// ❌ 404 Handler
+// ❌ 404 Not Found Handler
 app.use((req, res) => {
   res.status(404).json({ message: 'Endpoint not found 🚫' });
 });
@@ -56,8 +56,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong on the server.' });
 });
 
-// 🚀 Start server
+// 🚀 Start server with 0.0.0.0 host for Render compatibility
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
+const HOST = '0.0.0.0';
+
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server is running at http://${HOST}:${PORT}`);
 });
