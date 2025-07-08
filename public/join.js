@@ -1,3 +1,5 @@
+const backendURL = 'https://chess-arena-l9c4.onrender.com'; // ✅ your live backend
+
 const tabJoin = document.getElementById('tab-join');
 const tabLogin = document.getElementById('tab-login');
 const secJoin = document.getElementById('section-join');
@@ -20,13 +22,14 @@ tabLogin.onclick = () => {
 const typeSelect = document.getElementById('tournamentType');
 const accessKeySection = document.getElementById('accessKeySection');
 const entryFeeSection = document.getElementById('entryFeeSection');
+
 typeSelect.addEventListener('change', () => {
   const isPrivate = typeSelect.value === 'private';
   accessKeySection.classList.toggle('hidden', !isPrivate);
   entryFeeSection.classList.toggle('hidden', isPrivate);
 });
 
-document.getElementById('joinForm').addEventListener('submit', async e => {
+document.getElementById('joinForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const errorEl = document.getElementById('join-error');
   errorEl.textContent = '';
@@ -36,14 +39,15 @@ document.getElementById('joinForm').addEventListener('submit', async e => {
   const tournamentName = document.getElementById('tournamentName').value.trim();
   const isPrivate = typeSelect.value === 'private';
   const accessKey = document.getElementById('accessKey').value.trim();
+  const entryFee = document.getElementById('entryFee').value;
 
   if (!email.includes('@')) email += '@gmail.com';
 
   try {
-    const resp = await fetch('/api/tournament/join', {
+    const resp = await fetch(`${backendURL}/api/tournament/join`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerName, email, tournamentName, isPrivate, accessKey })
+      body: JSON.stringify({ playerName, email, tournamentName, isPrivate, accessKey, entryFee })
     });
 
     const data = await resp.json();
@@ -58,7 +62,7 @@ document.getElementById('joinForm').addEventListener('submit', async e => {
   }
 });
 
-document.getElementById('loginForm').addEventListener('submit', async e => {
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const errorEl = document.getElementById('login-error');
   errorEl.textContent = '';
@@ -67,7 +71,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
   const loginId = document.getElementById('loginId').value.trim();
 
   try {
-    const resp = await fetch(`/api/player/profile/${encodeURIComponent(loginId)}`);
+    const resp = await fetch(`${backendURL}/api/player/profile/${encodeURIComponent(loginId)}`);
     const player = await resp.json();
 
     if (!resp.ok || !player.name) {

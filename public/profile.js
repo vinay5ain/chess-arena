@@ -1,7 +1,9 @@
+// ✅ Use deployed backend URL instead of localhost
+const BACKEND_URL = 'https://chess-arena-l9c4.onrender.com';
+
 const playerId = localStorage.getItem('playerId');
 if (!playerId) window.location.href = 'join.html';
 
-const BACKEND_URL = 'http://localhost:5000';
 let playerName = '';
 
 async function fetchProfile() {
@@ -26,7 +28,7 @@ async function fetchProfile() {
 
     fetchMatches();
   } catch (err) {
-    console.error('Failed to load profile:', err);
+    console.error('❌ Failed to load profile:', err);
     alert('Error loading profile.');
   }
 }
@@ -59,7 +61,7 @@ async function fetchMatches() {
     renderMatchList('upcomingMatches', data.upcoming || []);
     renderMatchList('matchHistory', data.history || []);
   } catch (err) {
-    console.warn('Match API failed or not implemented.');
+    console.warn('⚠️ Match API failed or not implemented.');
     renderMatchList('ongoingMatch', []);
     renderMatchList('upcomingMatches', []);
     renderMatchList('matchHistory', []);
@@ -77,8 +79,8 @@ function renderMatchList(containerId, matches) {
 
   matches.forEach(match => {
     const li = document.createElement('li');
-    const p1 = match.player1Name || 'Player 1';
-    const p2 = match.player2Name || 'Player 2';
+    const p1 = match.player1Name || match.player1 || 'Player 1';
+    const p2 = match.player2Name || match.player2 || 'Player 2';
     const round = match.round ? ` (Round ${match.round})` : '';
     const winner = match.status === 'completed' && match.winner ? ` - Winner: ${match.winner}` : '';
     li.textContent = `${p1} vs ${p2}${round} — ${match.status}${winner}`;

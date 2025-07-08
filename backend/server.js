@@ -18,7 +18,7 @@ const app = express();
 // ✅ Middleware
 app.use(cors());
 app.use(express.json());
-app.use(morgan('dev')); // Optional: logs all requests
+app.use(morgan('dev')); // Logs all HTTP requests
 
 // 📥 Global Debug Logger (for all requests)
 app.use((req, res, next) => {
@@ -56,10 +56,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong on the server.' });
 });
 
-// 🚀 Start server with 0.0.0.0 host for Render compatibility
+// 🌐 Start server
 const PORT = process.env.PORT || 5000;
-const HOST = '0.0.0.0';
+const HOST = '0.0.0.0'; // Listen on all interfaces for LAN access
+const LOCAL_IP = '192.168.1.43'; // Replace with your current IP if it changes
 
 app.listen(PORT, HOST, () => {
-  console.log(`🚀 Server is running at http://${HOST}:${PORT}`);
+  console.log(`🚀 Server is running at http://localhost:${PORT}`);
+  console.log(`🌐 Accessible on local network at: http://${LOCAL_IP}:${PORT}`);
 });

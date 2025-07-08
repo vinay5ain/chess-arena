@@ -1,3 +1,6 @@
+// ✅ Use Render deployment backend
+const BASE_URL = 'https://chess-arena-l9c4.onrender.com';
+
 document.getElementById('tournament-type').addEventListener('change', function () {
   const isPrivate = this.value === 'private';
   document.getElementById('private-fields').style.display = isPrivate ? 'block' : 'none';
@@ -22,7 +25,7 @@ async function checkLogin() {
   }
 
   try {
-    const res = await fetch(`http://127.0.0.1:5000/api/tournament/login`, {
+    const res = await fetch(`${BASE_URL}/api/tournament/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tournamentName: name, password: pass })
@@ -67,7 +70,7 @@ async function handleCreate(event) {
   };
 
   try {
-    const res = await fetch('http://127.0.0.1:5000/api/tournament/create', {
+    const res = await fetch(`${BASE_URL}/api/tournament/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
