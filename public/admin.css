@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
 :root {
   --primary: #2e7d32;   /* chess green */
   --danger: #c0392b;
   --success: #d4af37;   /* gold */
   --warning: #f39c12;
-  --bg: #fdfcf8;        /* soft cream */
+  --bg: rgba(253, 252, 248, 0.92); /* translucent cream */
   --text-dark: #222;
   --shadow: rgba(0, 0, 0, 0.1);
 }
@@ -15,11 +17,13 @@
 
 body {
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: var(--bg);
+  font-family: 'Orbitron', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: url('../background_image_5.png') no-repeat center center fixed;
+  background-size: cover;
   color: var(--text-dark);
 }
 
+/* Header */
 header {
   background: linear-gradient(90deg, #1b1b1b, #333);
   color: #fff;
@@ -31,8 +35,9 @@ header {
   z-index: 10;
 }
 
+/* Navbar */
 nav {
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
   display: flex;
   justify-content: center;
   padding: 0.75rem 0;
@@ -57,10 +62,14 @@ nav > a:hover {
   color: white;
 }
 
+/* Main Content */
 main {
   padding: 2rem;
   max-width: 1100px;
   margin: auto;
+  background: var(--bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
 }
 
 .section + .section {
@@ -73,6 +82,7 @@ main {
   padding-left: 0.75rem;
 }
 
+/* Table */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -99,6 +109,7 @@ tr:hover {
   transform: scale(1.005);
 }
 
+/* Tabs */
 .tabs {
   display: flex;
   gap: 1rem;
@@ -126,6 +137,7 @@ tr:hover {
   color: white;
 }
 
+/* Match Items */
 .match-list .match-item {
   background: white;
   margin-bottom: 12px;
@@ -135,6 +147,7 @@ tr:hover {
   border-radius: 6px;
 }
 
+/* Form Controls */
 .input-group {
   display: flex;
   align-items: center;
@@ -157,6 +170,14 @@ input[type="number"] {
   font-size: 15px;
 }
 
+select {
+  padding: 8px 10px;
+  margin: 0 5px;
+  border-radius: 5px;
+  border: 1px solid #aaa;
+}
+
+/* Buttons */
 button.btn {
   padding: 10px 14px;
   border: none;
@@ -177,24 +198,25 @@ button.btn:hover {
   opacity: 0.92;
 }
 
-select {
-  padding: 8px 10px;
-  margin: 0 5px;
-  border-radius: 5px;
-  border: 1px solid #aaa;
+/* Text Selection */
+::selection {
+  background: #c8e6c9;
+  color: var(--primary);
 }
 
+/* Responsive */
 @media (max-width: 600px) {
   .input-group {
     flex-direction: column;
     align-items: stretch;
   }
+
   nav {
     flex-direction: column;
   }
-}
 
-::selection {
-  background: #c8e6c9;
-  color: #1b5e20;
+  main {
+    padding: 1rem;
+    margin: 1rem;
+  }
 }

@@ -1,15 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
 :root {
   accent-color: #2e7d32;
+  --gold: #d4af37;
+  --dark: #1c1c1c;
+  --deep-green: #1b5e20;
+  --chess-green: #2e7d32;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #fdfcf8;
-  margin: 0;
-  padding: 0;
+  font-family: 'Orbitron', sans-serif;
+  background: url('../background_imag_4.png') no-repeat center center fixed;
+  background-size: cover;
   color: #222;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
+/* Header */
 header {
   background: linear-gradient(90deg, #1c1c1c, #2d2d2d, #3a3a3a);
   color: #f0f0f0;
@@ -25,11 +39,12 @@ header h1 {
   letter-spacing: 1px;
 }
 
+/* Login Button */
 .login-btn {
   position: absolute;
   top: 20px;
   left: 20px;
-  background: #d4af37;
+  background: var(--gold);
   border: none;
   color: #000;
   padding: 8px 16px;
@@ -45,13 +60,14 @@ header h1 {
   transform: scale(1.05);
 }
 
+/* Form Section */
 main {
   max-width: 600px;
   margin: 40px auto;
   padding: 30px;
-  background: #fff;
+  background: rgba(255,255,255,0.9);
   border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
 }
 
 form label {
@@ -73,15 +89,16 @@ form input, form select {
 }
 
 form input:focus, form select:focus {
-  border-color: #2e7d32;
+  border-color: var(--chess-green);
   outline: none;
 }
 
+/* Submit Button */
 .create-btn {
   margin-top: 25px;
   width: 100%;
   padding: 14px;
-  background: #2e7d32;
+  background: var(--chess-green);
   color: white;
   font-size: 18px;
   border: none;
@@ -93,10 +110,11 @@ form input:focus, form select:focus {
 }
 
 .create-btn:hover {
-  background: #1b5e20;
+  background: var(--deep-green);
   transform: translateY(-2px);
 }
 
+/* Modal */
 .modal {
   display: none;
   position: fixed;
@@ -129,7 +147,7 @@ form input:focus, form select:focus {
 }
 
 .modal-content button {
-  background: #2e7d32;
+  background: var(--chess-green);
   color: white;
   padding: 10px;
   font-size: 16px;
@@ -143,9 +161,10 @@ form input:focus, form select:focus {
 }
 
 .modal-content button:hover {
-  background: #1b5e20;
+  background: var(--deep-green);
 }
 
+/* Close Button */
 .close {
   position: absolute;
   right: 15px;
@@ -158,4 +177,19 @@ form input:focus, form select:focus {
 ::selection {
   background: #d4efdf;
   color: #1b5e20;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  main {
+    margin: 20px;
+    padding: 20px;
+  }
+
+  .login-btn {
+    top: 10px;
+    left: 10px;
+    padding: 6px 12px;
+    font-size: 14px;
+  }
 }

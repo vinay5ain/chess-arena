@@ -3,35 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel – Chess Tournament</title>
+  <title>♔ Admin Panel – Chess Tournament</title>
   <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
 
 <header>
-  <h1>Admin Panel – Chess Tournament</h1>
+  <h1><i class="fas fa-chess-king"></i> Admin Panel – Chess Tournament</h1>
 </header>
 
 <nav>
-  <a href="#leaderboard">Leaderboard</a>
-  <a href="#matches">Matches</a>
-  <a href="#controls">Tournament Control</a>
-  <a href="#players">Player Management</a>
+  <a href="#leaderboard"><i class="fas fa-trophy"></i> Leaderboard</a>
+  <a href="#matches"><i class="fas fa-chess-board"></i> Matches</a>
+  <a href="#controls"><i class="fas fa-cogs"></i> Control</a>
+  <a href="#players"><i class="fas fa-user-friends"></i> Players</a>
 </nav>
 
 <main>
   <!-- 🏆 Leaderboard -->
   <section id="leaderboard" class="section">
-    <h2>🏆 Leaderboard</h2>
+    <h2>♛ Leaderboard</h2>
     <table>
       <thead>
         <tr>
-          <th>Rank</th>
-          <th>Player</th>
-          <th>Player ID</th>
-          <th>Wins</th>
-          <th>Losses</th>
-          <th>Points</th>
+          <th>#</th>
+          <th>♙ Player</th>
+          <th>ID</th>
+          <th>✔️ Wins</th>
+          <th>❌ Losses</th>
+          <th>🏅 Points</th>
         </tr>
       </thead>
       <tbody id="leaderboard-body"></tbody>
@@ -40,7 +41,7 @@
 
   <!-- 🎯 Matches -->
   <section id="matches" class="section">
-    <h2>🎯 Matches</h2>
+    <h2>♞ Matches</h2>
     <div class="tabs">
       <button class="active" onclick="switchTab('live', event)">🔴 Live</button>
       <button onclick="switchTab('upcoming', event)">🟡 Upcoming</button>
@@ -53,14 +54,14 @@
   <section id="controls" class="section">
     <h2>⚙️ Tournament Control</h2>
     <div class="input-group">
-      <label>Set Rounds:</label>
+      <label><i class="fas fa-layer-group"></i> Set Rounds:</label>
       <input type="number" id="rounds" min="1" />
       <button class="btn btn-success" onclick="setRounds()">Set</button>
     </div>
     <div class="input-group">
-      <label>Matchmaking:</label>
-      <button class="btn btn-primary" onclick="manualMatchmaking()">Manual</button>
-      <button class="btn btn-warning" onclick="autoMatchmaking()">Auto</button>
+      <label><i class="fas fa-random"></i> Matchmaking:</label>
+      <button class="btn btn-primary" onclick="manualMatchmaking()">♜ Manual</button>
+      <button class="btn btn-warning" onclick="autoMatchmaking()">♘ Auto</button>
     </div>
   </section>
 
@@ -68,14 +69,14 @@
   <section id="players" class="section">
     <h2>👥 Player Management</h2>
     <div class="input-group">
-      <label>Player ID:</label>
+      <label><i class="fas fa-id-badge"></i> Player ID:</label>
       <input type="text" id="searchPlayer" placeholder="Enter player ID" />
       <button class="btn btn-danger" onclick="disqualifyPlayer()">🚫 Disqualify</button>
       <button class="btn btn-danger" onclick="removePoints()">➖ Remove Points</button>
     </div>
     <hr />
     <div class="input-group">
-      <label>Add Player (Name):</label>
+      <label><i class="fas fa-user-plus"></i> Add Player (Name):</label>
       <input type="text" id="newPlayerName" placeholder="Enter player name" />
       <button class="btn btn-success" onclick="addPlayer()">➕ Add Player</button>
     </div>

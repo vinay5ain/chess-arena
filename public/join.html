@@ -5,59 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Join / Login Tournament</title>
   <link rel="stylesheet" href="join.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="container">
     <div class="tab-buttons">
-      <button id="tab-join" class="active">Join</button>
-      <button id="tab-login">Login</button>
+      <button id="tab-join" class="active"><i class="fas fa-chess-pawn"></i> Join</button>
+      <button id="tab-login"><i class="fas fa-chess-king"></i> Login</button>
     </div>
 
     <!-- JOIN FORM -->
     <div id="section-join" class="form-section active">
-      <h2>Join Tournament</h2>
+      <h2>♞ Join Tournament</h2>
       <form id="joinForm">
-        <label>Player Name:</label>
+        <label><i class="fas fa-user"></i> Player Name:</label>
         <input type="text" id="playerName" placeholder="e.g. Anil Sharma" required />
 
-        <label>Email:</label>
+        <label><i class="fas fa-envelope"></i> Email:</label>
         <input type="text" id="email" placeholder="e.g. anil@gmail.com" required />
 
-        <label>Tournament Name:</label>
+        <label><i class="fas fa-trophy"></i> Tournament Name:</label>
         <input type="text" id="tournamentName" required />
 
-        <label>Tournament Type:</label>
+        <label><i class="fas fa-chess-board"></i> Tournament Type:</label>
         <select id="tournamentType" required>
           <option value="public">Public</option>
           <option value="private">Private</option>
         </select>
 
         <div id="entryFeeSection">
-          <label>Entry Fee:</label>
+          <label><i class="fas fa-coins"></i> Entry Fee:</label>
           <input type="number" id="entryFee" placeholder="e.g. 100" />
         </div>
 
         <div id="accessKeySection" class="hidden">
-          <label>Access Key:</label>
+          <label><i class="fas fa-key"></i> Access Key:</label>
           <input type="text" id="accessKey" />
         </div>
 
-        <button type="submit" class="btn">Join Tournament</button>
+        <button type="submit" class="btn"><i class="fas fa-door-open"></i> Join Tournament</button>
         <div id="join-error" class="error"></div>
       </form>
     </div>
 
     <!-- LOGIN FORM -->
     <div id="section-login" class="form-section">
-      <h2>Player Login</h2>
+      <h2>♚ Player Login</h2>
       <form id="loginForm">
-        <label>Player Name:</label>
+        <label><i class="fas fa-user"></i> Player Name:</label>
         <input type="text" id="loginName" required />
 
-        <label>Player ID:</label>
+        <label><i class="fas fa-id-badge"></i> Player ID:</label>
         <input type="text" id="loginId" required />
 
-        <button type="submit" class="btn">Login</button>
+        <button type="submit" class="btn"><i class="fas fa-sign-in-alt"></i> Login</button>
         <div id="login-error" class="error"></div>
       </form>
     </div>

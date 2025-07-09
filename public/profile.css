@@ -1,9 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
 :root {
   --main-green: #28a745;
   --light-green: #d4edda;
   --dark-green: #215e21;
   --white: #ffffff;
   --error-red: #c82333;
+  --navbar-bg: rgba(0, 0, 0, 0.6);
   accent-color: var(--main-green);
 }
 
@@ -12,26 +15,41 @@ html {
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0; 
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
   padding: 0;
-  background: #f0fdf4;
-  color: #333;
+  background: url('/background_image6.png') no-repeat center center fixed;
+  background-size: cover;
+  color: #f5f5f5;
   line-height: 1.6;
+  position: relative;
 }
 
+/* Dark overlay to increase readability */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: -1;
+}
+
+/* === HEADER === */
 header {
   background: linear-gradient(90deg, #1b5e20, #2e7d32, #43a047);
   color: #fff;
   padding: 30px 20px;
   text-align: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 header h1 {
   margin: 0;
   font-size: 2.5rem;
+  font-weight: 700;
 }
 
+/* === MAIN CONTENT === */
 main {
   max-width: 900px;
   margin: 40px auto;
@@ -39,12 +57,14 @@ main {
 }
 
 section {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.07);
   margin-bottom: 30px;
   padding: 20px 24px;
   transition: transform 0.2s ease;
+  color: #333;
+  backdrop-filter: blur(2px);
 }
 
 section:hover {
@@ -55,8 +75,10 @@ section h2 {
   margin-top: 0;
   color: #2e7d32;
   font-size: 1.8rem;
+  font-weight: 600;
 }
 
+/* === GRID === */
 .summary-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -72,6 +94,7 @@ section h2 {
   color: #555;
 }
 
+/* === MATCH LIST === */
 .match-list {
   list-style: none;
   padding: 0;
@@ -86,6 +109,7 @@ section h2 {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.25s ease;
+  color: #222;
 }
 
 .match-list li:hover {
@@ -93,12 +117,14 @@ section h2 {
   transform: scale(1.01);
 }
 
+/* === BUTTONS === */
 .btn {
   padding: 12px 24px;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
+  font-weight: 500;
   transition: all 0.3s ease;
 }
 
@@ -120,6 +146,7 @@ section h2 {
   text-align: center;
 }
 
+/* === TEXT SELECTION === */
 ::selection {
   background: #c8e6c9;
   color: #1b5e20;

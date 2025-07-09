@@ -3,47 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Create Tournament</title>
+  <title>♖ Create Tournament</title>
   <link rel="stylesheet" href="create.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
 
   <header>
-    <h1>Create a New Tournament</h1>
-    <button class="login-btn" onclick="openLogin()">Login</button>
+    <h1><i class="fas fa-chess-knight"></i> Create a New Tournament</h1>
+    <button class="login-btn" onclick="openLogin()"><i class="fas fa-sign-in-alt"></i> Login</button>
   </header>
 
   <main>
     <form onsubmit="handleCreate(event)">
-      <label for="tournament-name">Tournament Name:</label>
+      <label for="tournament-name"><i class="fas fa-chess-board"></i> Tournament Name:</label>
       <input type="text" id="tournament-name" required />
 
-      <label for="password">Tournament Password:</label>
+      <label for="password"><i class="fas fa-lock"></i> Tournament Password:</label>
       <input type="password" id="password" required />
 
-      <label for="tournament-type">Tournament Type:</label>
+      <label for="tournament-type"><i class="fas fa-shield-alt"></i> Tournament Type:</label>
       <select id="tournament-type">
-        <option value="public">Public</option>
-        <option value="private">Private</option>
+        <option value="public">♟ Public</option>
+        <option value="private">♔ Private</option>
       </select>
 
       <div id="private-fields" style="display:none;">
-        <label for="access-key">Access Key:</label>
+        <label for="access-key"><i class="fas fa-key"></i> Access Key:</label>
         <input type="text" id="access-key" />
       </div>
 
       <div id="public-fields">
-        <label for="entry-fee">Entry Fee:</label>
+        <label for="entry-fee"><i class="fas fa-coins"></i> Entry Fee:</label>
         <input type="number" id="entry-fee" />
       </div>
 
-      <label for="mode">Mode:</label>
+      <label for="mode"><i class="fas fa-globe"></i> Mode:</label>
       <select id="mode">
-        <option value="online">Online</option>
-        <option value="offline">Offline</option>
+        <option value="online">♘ Online</option>
+        <option value="offline">♖ Offline</option>
       </select>
 
-      <button type="submit" class="create-btn">Create Tournament</button>
+      <button type="submit" class="create-btn"><i class="fas fa-chess-king"></i> Create Tournament</button>
     </form>
   </main>
 
@@ -51,12 +52,12 @@
   <div class="modal" id="loginModal">
     <div class="modal-content">
       <span class="close" onclick="closeLogin()">&times;</span>
-      <h3>Tournament Admin Login</h3>
-      <label for="login-name">Tournament Name:</label>
+      <h3><i class="fas fa-user-lock"></i> Tournament Admin Login</h3>
+      <label for="login-name"><i class="fas fa-chess"></i> Tournament Name:</label>
       <input type="text" id="login-name" />
-      <label for="login-pass">Tournament Password:</label>
+      <label for="login-pass"><i class="fas fa-lock"></i> Tournament Password:</label>
       <input type="password" id="login-pass" />
-      <button onclick="checkLogin()">Login</button>
+      <button onclick="checkLogin()"><i class="fas fa-sign-in-alt"></i> Login</button>
     </div>
   </div>
 

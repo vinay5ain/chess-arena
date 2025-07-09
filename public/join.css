@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
 :root {
   --main-green: #28a745;
-  --light-green: #d4edda;
-  --dark-green: #215e21;
+  --light-green: #a5d6a7;
+  --dark-green: #1b5e20;
   --white: #ffffff;
-  --error-red: #c82333;
+  --error-red: #ff5252;
   accent-color: var(--main-green);
 }
 
@@ -12,27 +14,26 @@ html {
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(to right, #f9fff9, #e9f7e9);
-  background-blend-mode: lighten;
+  font-family: 'Poppins', sans-serif;
+  background: url('/background_image_3.png') no-repeat center center fixed;
+  background-size: cover;
   margin: 0;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  color: var(--dark-green);
+  color: #f1f1f1;
 }
 
+/* === Container === */
 .container {
-  background: var(--white);
+  background: rgba(20, 20, 20, 0.85); /* dark semi-transparent */
   padding: 30px;
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 128, 0, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 255, 0, 0.15);
   width: 100%;
   max-width: 420px;
   animation: fadeIn 0.6s ease-out both;
-  backface-visibility: hidden;
-  will-change: transform, opacity;
 }
 
 @keyframes fadeIn {
@@ -40,12 +41,16 @@ body {
   100% { opacity: 1; transform: translateY(0); }
 }
 
+/* === Headings === */
 h2 {
   text-align: center;
   margin-bottom: 20px;
   font-variant: small-caps;
+  color: var(--light-green);
+  font-weight: 600;
 }
 
+/* === Tabs === */
 .tab-buttons {
   display: flex;
   gap: 8px;
@@ -56,8 +61,8 @@ h2 {
   flex: 1;
   padding: 10px 0;
   border: none;
-  background: var(--light-green);
-  color: var(--dark-green);
+  background: #333;
+  color: var(--light-green);
   font-weight: bold;
   cursor: pointer;
   border-radius: 6px;
@@ -65,6 +70,7 @@ h2 {
 }
 
 .tab-buttons button:hover {
+  background: #444;
   transform: scale(1.02);
 }
 
@@ -73,6 +79,7 @@ h2 {
   color: var(--white);
 }
 
+/* === Form Section === */
 .form-section {
   display: none;
   animation: fadeIn 0.4s ease-in;
@@ -82,10 +89,12 @@ h2 {
   display: block;
 }
 
+/* === Labels and Inputs === */
 label {
   display: block;
   margin-top: 16px;
   font-weight: 600;
+  color: #c8e6c9;
 }
 
 input, select {
@@ -93,22 +102,25 @@ input, select {
   padding: 10px;
   margin-top: 6px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid #555;
   font-size: 15px;
+  background: #1c1c1c;
+  color: #e8f5e9;
   transition: border-color 0.3s ease, background 0.2s;
-  background-clip: padding-box;
 }
 
 input:focus, select:focus {
   border-color: var(--main-green);
   outline: none;
-  background: #f0fff0;
+  background: #263238;
 }
 
 input::placeholder {
-  color: #999;
+  color: #888;
+  font-style: italic;
 }
 
+/* === Button === */
 .btn {
   width: 100%;
   margin-top: 24px;
@@ -121,14 +133,14 @@ input::placeholder {
   font-size: 16px;
   font-weight: bold;
   transition: background 0.3s ease, transform 0.2s ease;
-  will-change: transform;
 }
 
 .btn:hover {
-  background-color: #218838;
+  background-color: #1e7c35;
   transform: scale(1.03);
 }
 
+/* === Utility === */
 .hidden {
   display: none;
 }
@@ -140,6 +152,7 @@ input::placeholder {
   font-size: 14px;
 }
 
+/* === Scroll Compatibility for Short Screens === */
 @media (max-height: 600px) {
   body {
     overflow-y: auto;

@@ -3,66 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Player Profile</title>
+  <title>♟ Player Profile | Chess Arena</title>
   <link rel="stylesheet" href="profile.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
   <header>
-    <h1>Player Profile</h1>
+    <h1>♟ Player Profile</h1>
   </header>
 
   <main>
     <section>
-      <h2>Player Summary</h2>
+      <h2>♖ Player Summary</h2>
       <div class="summary-grid">
-        <div class="label">Player Name:</div>
+        <div class="label">♙ Player Name:</div>
         <div class="value" id="playerName">Loading...</div>
 
-        <div class="label">Player ID:</div>
+        <div class="label">🆔 Player ID:</div>
         <div class="value" id="playerId">Loading...</div>
 
-        <div class="label">Tournament Name:</div>
+        <div class="label">🏆 Tournament Name:</div>
         <div class="value" id="tournamentName">Loading...</div>
 
-        <div class="label">Matches Played:</div>
+        <div class="label">🎯 Matches Played:</div>
         <div class="value" id="matchesPlayed">0</div>
 
-        <div class="label">Total Wins:</div>
+        <div class="label">✅ Total Wins:</div>
         <div class="value" id="totalWins">0</div>
 
-        <div class="label">Total Losses:</div>
+        <div class="label">❌ Total Losses:</div>
         <div class="value" id="totalLosses">0</div>
       </div>
     </section>
 
     <section>
-      <h2>Ongoing Match</h2>
+      <h2>♞ Ongoing Match</h2>
       <ul class="match-list" id="ongoingMatch">
         <li>Loading ongoing match...</li>
       </ul>
     </section>
 
     <section>
-      <h2>Upcoming Matches</h2>
+      <h2>📅 Upcoming Matches</h2>
       <ul class="match-list" id="upcomingMatches">
         <li>Loading upcoming matches...</li>
       </ul>
     </section>
 
     <section>
-      <h2>Match History</h2>
+      <h2>📜 Match History</h2>
       <ul class="match-list" id="matchHistory">
         <li>Loading match history...</li>
       </ul>
     </section>
 
     <div class="center">
-      <button class="btn btn-logout" onclick="logout()">Log Out</button>
+      <button class="btn btn-logout" onclick="logout()">🚪 Log Out</button>
     </div>
   </main>
 
-  <script src="profile.js"></script>
+  <footer>
+    <p style="text-align: center; padding: 1rem;">♔ Thank you for being part of the Chess Arena ♛</p>
+  </footer>
 
+  <script src="profile.js"></script>
 </body>
 </html>
