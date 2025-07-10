@@ -32,8 +32,8 @@ const getLiveMatches = async (req, res) => {
   try {
     const { tournamentId } = req.params;
     const matches = await Match.find({
-      status: 'live',
       tournamentId,
+      status: 'live',
       winner: { $in: [null, '', undefined] },
       round: { $ne: null }
     });
@@ -49,8 +49,8 @@ const getUpcomingMatches = async (req, res) => {
   try {
     const { tournamentId } = req.params;
     const matches = await Match.find({
-      status: 'upcoming',
       tournamentId,
+      status: 'upcoming',
       round: { $ne: null }
     });
     res.status(200).json(matches);
@@ -65,8 +65,8 @@ const getPastMatches = async (req, res) => {
   try {
     const { tournamentId } = req.params;
     const matches = await Match.find({
-      status: 'completed',
-      tournamentId
+      tournamentId,
+      status: 'completed'
     });
     res.status(200).json(matches);
   } catch (err) {
@@ -84,9 +84,7 @@ const getMatchById = async (req, res) => {
     }
 
     const match = await Match.findById(id);
-    if (!match) {
-      return res.status(404).json({ message: 'Match not found.' });
-    }
+    if (!match) return res.status(404).json({ message: 'Match not found.' });
 
     res.status(200).json(match);
   } catch (err) {
@@ -136,29 +134,37 @@ const getMatchesByTournament = async (req, res) => {
   }
 };
 
-// ✅ Get Matches by Player ID
+// ✅ Get Matches for a Player (grouped)
 const getMatchesForPlayer = async (req, res) => {
   try {
     const { playerId } = req.params;
 
-    const allMatches = await Match.find({
+    const matches = await Match.find({
       $or: [{ player1: playerId }, { player2: playerId }]
     }).lean();
 
-    const safe = m => ({
-      ...m,
-      player1Name: m.player1 || 'Player 1',
-      player2Name: m.player2 || 'Player 2',
-      round: m.round ?? 'N/A',
-      status: m.status || 'upcoming',
-      winner: m.winner || null
-    });
+    const grouped = {
+      ongoing: [],
+      upcoming: [],
+      history: []
+    };
 
-    const ongoing = allMatches.filter(m => m.status === 'live' && !m.winner).map(safe);
-    const upcoming = allMatches.filter(m => m.status === 'upcoming').map(safe);
-    const history = allMatches.filter(m => m.status === 'completed').map(safe);
+    for (const match of matches) {
+      const m = {
+        matchId: match._id,
+        player1Name: match.player1 || 'Player 1',
+        player2Name: match.player2 || 'Player 2',
+        round: match.round ?? 'N/A',
+        status: match.status || 'upcoming',
+        winner: match.winner || null
+      };
 
-    res.status(200).json({ ongoing, upcoming, history });
+      if (m.status === 'live' && !m.winner) grouped.ongoing.push(m);
+      else if (m.status === 'upcoming') grouped.upcoming.push(m);
+      else if (m.status === 'completed') grouped.history.push(m);
+    }
+
+    res.status(200).json(grouped);
   } catch (err) {
     console.error('Error fetching matches by player ID:', err);
     res.status(500).json({ message: 'Failed to load player matches.' });
