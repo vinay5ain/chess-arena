@@ -18,7 +18,7 @@
 
 html, body {
   font-family: 'Orbitron', sans-serif;
-  background: url('../background_image2.png') no-repeat center center fixed;
+  background: url('./background_image2.png') no-repeat center center fixed;
   background-size: cover;
   background-color: var(--dark-bg);
   color: var(--text-light);
