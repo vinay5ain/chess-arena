@@ -1,8 +1,7 @@
 // ✅ Set your deployed backend URL
 const BASE_URL = 'https://chess-arena-l9c4.onrender.com';
-
-// ✅ Check if admin is logged in
 const tournamentId = localStorage.getItem('tournamentId');
+
 if (!tournamentId) {
   alert('Please login first.');
   window.location.href = 'create.html';
@@ -11,7 +10,22 @@ if (!tournamentId) {
   switchTab('live', { target: document.querySelector('.tabs button:nth-child(1)') });
 }
 
-// ✅ Load leaderboard
+// ✅ Disable round input if already set
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/api/tournament/${tournamentId}`);
+    const tournament = await res.json();
+    const input = document.getElementById('rounds');
+    if (tournament.rounds) {
+      input.value = tournament.rounds;
+      input.disabled = true;
+      input.nextElementSibling.disabled = true;
+    }
+  } catch (err) {
+    console.error('Error loading tournament:', err);
+  }
+});
+
 async function loadLeaderboard() {
   try {
     const res = await fetch(`${BASE_URL}/api/admin/leaderboard/${tournamentId}`);
@@ -34,7 +48,6 @@ async function loadLeaderboard() {
   }
 }
 
-// ✅ Switch tabs: live / upcoming / past
 async function switchTab(tab, event) {
   document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
   if (event?.target) event.target.classList.add('active');
@@ -52,13 +65,7 @@ async function switchTab(tab, event) {
     }
 
     for (const m of matches) {
-      let roundDisplay = '';
-      if (m.round !== undefined && m.round !== null) {
-        roundDisplay = ` (Round: ${String(m.round).toUpperCase()})`;
-      } else if (tab === 'upcoming') {
-        roundDisplay = ` (Round: N/A)`;
-      }
-
+      let roundDisplay = m.round ? ` (Round: ${String(m.round).toUpperCase()})` : ' (Round: N/A)';
       let html = `${m.player1} vs ${m.player2}${roundDisplay} - ${m.status}`;
       if (tab === 'live') {
         html += `
@@ -81,9 +88,9 @@ async function switchTab(tab, event) {
   }
 }
 
-// ✅ Set total rounds
 async function setRounds() {
-  const rounds = parseInt(document.getElementById('rounds').value);
+  const input = document.getElementById('rounds');
+  const rounds = parseInt(input.value);
   if (!rounds || rounds < 1) return alert('Enter valid round number.');
   try {
     const res = await fetch(`${BASE_URL}/api/admin/rounds/${tournamentId}`, {
@@ -94,12 +101,13 @@ async function setRounds() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
     alert('✅ Rounds set successfully.');
+    input.disabled = true;
+    input.nextElementSibling.disabled = true;
   } catch (err) {
     alert('❌ ' + err.message);
   }
 }
 
-// ✅ Auto matchmaking
 async function autoMatchmaking() {
   try {
     const res = await fetch(`${BASE_URL}/api/admin/auto-match/${tournamentId}`, {
@@ -107,38 +115,14 @@ async function autoMatchmaking() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
-    alert('✅ Auto matches created.');
+    alert(data.message || '✅ Auto matches created.');
     switchTab('live', { target: document.querySelector('.tabs button:nth-child(1)') });
+    loadLeaderboard();
   } catch (err) {
     alert('❌ ' + err.message);
   }
 }
 
-// ✅ Manual match creation
-async function manualMatchmaking() {
-  const player1 = prompt('Enter Player 1 name');
-  const player2 = prompt('Enter Player 2 name');
-  const round = parseInt(prompt('Enter Round number'));
-  const time = new Date().toISOString();
-
-  if (!player1 || !player2 || !round) return alert('Missing input');
-
-  try {
-    const res = await fetch(`${BASE_URL}/api/admin/manual-match`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tournamentId, player1, player2, round, scheduledTime: time })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message);
-    alert('✅ Manual match created.');
-    switchTab('upcoming', { target: document.querySelector('.tabs button:nth-child(2)') });
-  } catch (err) {
-    alert('❌ ' + err.message);
-  }
-}
-
-// ✅ Set winner for a match
 async function setWinner(matchId) {
   const winner = document.getElementById(`win-${matchId}`).value;
   try {
@@ -157,7 +141,6 @@ async function setWinner(matchId) {
   }
 }
 
-// ✅ Disqualify player
 async function disqualifyPlayer() {
   const playerId = document.getElementById('searchPlayer').value.trim();
   if (!playerId) return alert('Enter player ID');
@@ -174,7 +157,6 @@ async function disqualifyPlayer() {
   }
 }
 
-// ✅ Remove points
 async function removePoints() {
   const playerId = document.getElementById('searchPlayer').value.trim();
   if (!playerId) return alert('Enter player ID');
@@ -191,7 +173,6 @@ async function removePoints() {
   }
 }
 
-// ✅ Add player (with playerId display)
 async function addPlayer() {
   const playerName = document.getElementById('newPlayerName').value.trim();
   if (!playerName) return alert('Enter player name');
