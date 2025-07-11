@@ -169,23 +169,31 @@ exports.autoMatchmaking = async (req, res) => {
       return res.json({ message: '🏆 Tournament winner declared', winner: finalMatch.winner });
     }
 
-    // ✅ Final trigger after semi-final
+    // ✅ Final trigger after semi-final ✅ FIXED HERE
     if (semiFinalMatch && semiFinalMatch.status === 'completed' && !finalMatch) {
       const semiWinner = semiFinalMatch.winner;
+
+      if (!semiWinner) {
+        return res.status(400).json({ message: 'Semi-final winner is missing, cannot create final.' });
+      }
+
       const topPlayers = await Player.find({ tournamentId }).sort((a, b) => b.points - a.points);
       const topScorer = topPlayers.find(p => p.name !== semiWinner);
 
-      if (topScorer) {
-        const final = await Match.create({
-          tournamentId,
-          round: 'final',
-          player1: topScorer.name,
-          player2: semiWinner,
-          scheduledTime: today,
-          status: 'live'
-        });
-        return res.json({ message: '👑 Final match created (after semi-final)', match: final });
+      if (!topScorer) {
+        return res.status(400).json({ message: 'No opponent found for the final.' });
       }
+
+      const final = await Match.create({
+        tournamentId,
+        round: 'final',
+        player1: topScorer.name,
+        player2: semiWinner,
+        scheduledTime: today,
+        status: 'live'
+      });
+
+      return res.json({ message: '👑 Final match created (after semi-final)', match: final });
     }
 
     // ✅ Create knockout or semi-final/final
