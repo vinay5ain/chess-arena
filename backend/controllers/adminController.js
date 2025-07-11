@@ -2,7 +2,6 @@ const Player = require('../models/player');
 const Match = require('../models/match');
 const Tournament = require('../models/tournament');
 
-// Helper to shuffle players
 const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
 
 // 1. Get Leaderboard
@@ -16,18 +15,24 @@ exports.getLeaderboard = async (req, res) => {
   }
 };
 
-// 2. Set Rounds
+// 2. Set Rounds (Locked after first time)
 exports.setRounds = async (req, res) => {
   try {
     const { tournamentId } = req.params;
     const { rounds } = req.body;
+
     const tournament = await Tournament.findById(tournamentId);
     if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
-    if (tournament.rounds) return res.status(400).json({ message: 'Rounds already set' });
+
+    if (tournament.roundsLocked) {
+      return res.status(400).json({ message: 'Rounds already locked and cannot be changed' });
+    }
 
     tournament.rounds = rounds;
+    tournament.roundsLocked = true;
     await tournament.save();
-    res.json({ message: 'Rounds set', rounds });
+
+    res.json({ message: 'Rounds set and locked', rounds });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -149,32 +154,7 @@ exports.autoMatchmaking = async (req, res) => {
   }
 };
 
-// 4. Manual Matchmaking (now added)
-exports.manualMatchmaking = async (req, res) => {
-  try {
-    const { tournamentId, player1, player2, scheduledTime, round } = req.body;
-
-    if (!player1 || !player2 || !tournamentId) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    const match = await Match.create({
-      tournamentId,
-      player1,
-      player2,
-      round: round || 1,
-      scheduledTime: scheduledTime || new Date(),
-      status: 'upcoming'
-    });
-
-    res.json({ message: 'Manual match created', match });
-  } catch (err) {
-    console.error('Manual matchmaking error:', err);
-    res.status(500).json({ message: 'Server error during manual match creation' });
-  }
-};
-
-// 5. Set Match Winner
+// 4. Set Match Winner
 exports.setMatchWinner = async (req, res) => {
   try {
     const { matchId } = req.params;
@@ -201,7 +181,7 @@ exports.setMatchWinner = async (req, res) => {
   }
 };
 
-// 6. Progress Knockout Rounds
+// 5. Progress Knockout Rounds
 exports.progressKnockouts = async (req, res) => {
   try {
     const { tournamentId } = req.params;
@@ -253,7 +233,7 @@ exports.progressKnockouts = async (req, res) => {
   }
 };
 
-// 7. Get Match History
+// 6. Get Match History
 exports.getMatchHistory = async (req, res) => {
   try {
     const { tournamentId } = req.params;
