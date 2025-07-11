@@ -16,10 +16,7 @@ router.post('/auto-match/:tournamentId', adminController.autoMatchmaking);
 // 4. ✅ Set winner manually
 router.post('/set-winner/:matchId', adminController.setMatchWinner);
 
-// 5. 🥊 Progress knockout stage
-router.post('/knockout/progress/:tournamentId', adminController.progressKnockouts);
-
-// 6. 📜 Full match history
+// 5. 📜 Full match history
 router.get('/history/:tournamentId', adminController.getMatchHistory);
 
 module.exports = router;
