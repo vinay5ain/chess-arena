@@ -7,6 +7,228 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="index.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: url("background_image6.png") no-repeat center center fixed;
+      background-size: cover;
+      color: #ccc;
+    }
+
+    header {
+      background-color: rgba(91, 110, 105, 0.85);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: rgb(204, 220, 26);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    nav ul li a {
+      font-size: 1rem;
+      color: #fff;
+      position: relative;
+      transition: 0.3s ease;
+    }
+
+    nav ul li a::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      height: 2px;
+      width: 0%;
+      background-color: #ffd700;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700;
+    }
+
+    nav ul li a:hover::after {
+      width: 100%;
+    }
+
+    nav ul li a:hover {
+      color: #ffd700;
+      text-shadow: 0 0 5px #fff000;
+    }
+
+    .join-btn {
+      background-color: #ffbf00;
+      color: black;
+      padding: 0.6rem 1rem;
+      border-radius: 50px;
+      font-weight: bold;
+      transition: 0.3s ease;
+    }
+
+    .join-btn:hover {
+      background-color: rgb(255, 251, 0);
+      transform: scale(1.05);
+    }
+
+    .hamburger {
+      display: none;
+      font-size: 1.5rem;
+      color: white;
+      cursor: pointer;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #eee;
+    }
+
+    .hero h1 {
+      font-size: 2rem;
+      color: gold;
+      text-shadow: 0 0 10px gold;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      color: #ddd;
+    }
+
+    main section {
+      background-color: rgba(0, 0, 0, 0.7);
+      margin: 2rem auto;
+      padding: 2rem;
+      max-width: 800px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+    }
+
+    main section h2 {
+      color: #def209;
+      margin-bottom: 1rem;
+    }
+
+    main section p {
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .login-form {
+      display: none;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.5s ease;
+      background-color: rgba(0, 0, 0, 0.85);
+      padding: 2rem;
+      max-width: 500px;
+      margin: 2rem auto;
+      border-radius: 20px;
+    }
+
+    .login-form.show {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .login-form h2 {
+      color: cyan;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      border: none;
+      background: #222;
+      color: white;
+    }
+
+    .login-form label {
+      color: #bbb;
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+
+    .diagonal-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    .diagonal-buttons button {
+      background-color: #00fff7;
+      padding: 0.7rem 1.2rem;
+      border-radius: 30px;
+      color: black;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .diagonal-buttons button:hover {
+      transform: scale(1.05);
+      background-color: #0ff;
+    }
+
+    footer {
+      background-color: rgba(0, 0, 0, 0.9);
+      text-align: center;
+      padding: 1rem;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .hamburger {
+        display: block;
+      }
+
+      nav ul {
+        display: none;
+        flex-direction: column;
+        background-color: #000;
+        position: absolute;
+        top: 70px;
+        right: 10px;
+        padding: 1rem;
+        border-radius: 10px;
+        z-index: 1000;
+      }
+
+      nav ul.show {
+        display: flex;
+      }
+
+      nav ul li {
+        margin: 0.5rem 0;
+      }
+
+      .hero h1 {
+        font-size: 1.5rem;
+      }
+
+      .hero p {
+        font-size: 1rem;
+      }
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -32,9 +254,9 @@
     <p>Whether you're here to sharpen your skills, compete in tournaments, or just enjoy watching battles — Chess Arena is your virtual home.</p>
   </section>
 
-  <section class="login-form hidden" id="login-form">
+  <section class="login-form" id="login-form">
     <form onsubmit="return false;">
-      <h2>Sign Up</h2>
+      <h2>♞ Sign Up</h2>
       <label for="email">Email</label>
       <input type="email" id="email" placeholder="Enter your email" required />
       <label for="name">Name</label>
@@ -79,11 +301,12 @@
     }
 
     function showLoginForm() {
-      document.getElementById('login-form').classList.toggle('hidden');
+      const loginForm = document.getElementById('login-form');
+      loginForm.classList.toggle('show');
     }
 
     function handleLogin(role) {
-      alert("You joined as a " + role + "!");
+      alert("✅ You joined as a " + role + "!");
     }
   </script>
 </body>
