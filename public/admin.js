@@ -65,7 +65,17 @@ async function switchTab(tab, event) {
     }
 
     for (const m of matches) {
-      let roundDisplay = m.round ? ` (Round: ${String(m.round).toUpperCase()})` : ' (Round: N/A)';
+      let roundDisplay = '';
+      if (!m.round) {
+        roundDisplay = ' (Round: N/A)';
+      } else if (m.round === 'knockout') {
+        roundDisplay = ' 🔴 Knockout Round';
+      } else if (m.round === 'final') {
+        roundDisplay = ' 👑 Final Round';
+      } else {
+        roundDisplay = ` (Round: ${String(m.round).toUpperCase()})`;
+      }
+
       let html = `${m.player1} vs ${m.player2}${roundDisplay} - ${m.status}`;
       if (tab === 'live') {
         html += `

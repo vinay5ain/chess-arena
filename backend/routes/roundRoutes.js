@@ -1,19 +1,27 @@
-// backend/routes/roundRoutes.js
 const express = require('express');
 const router = express.Router();
+
 const {
   getLeaderboard,
   qualifyPlayers,
-  setMatchWinner
+  setMatchWinner,
+  generateKnockoutMatches,
+  progressKnockouts
 } = require('../controllers/roundController');
 
-// Leaderboard by tournament
+// 🏆 Leaderboard
 router.get('/leaderboard/:tournamentId', getLeaderboard);
 
-// Qualify players for knockout
+// ✅ Qualify top players
 router.post('/qualify', qualifyPlayers);
 
-// Admin override to set match result
+// ✍️ Manually set match winner
 router.put('/match/:matchId/result', setMatchWinner);
+
+// 🔁 Generate knockout matches from topN players
+router.post('/knockout/generate', generateKnockoutMatches);
+
+// 🥊 Progress knockout stage until final winner
+router.post('/knockout/progress/:tournamentId', progressKnockouts);
 
 module.exports = router;

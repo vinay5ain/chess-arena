@@ -8,7 +8,6 @@ const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
 const getLeaderboard = async (req, res) => {
   try {
     const { tournamentId } = req.params;
-
     const players = await Player.find({ tournamentId }).sort({ points: -1 });
     res.json(players);
   } catch (err) {
@@ -21,10 +20,9 @@ const getLeaderboard = async (req, res) => {
 const qualifyPlayers = async (req, res) => {
   try {
     const { tournamentId, roundLimit } = req.body;
-
     const players = await Player.find({ tournamentId }).sort({ points: -1 });
-    const cutoff = players[roundLimit - 1]?.points;
 
+    const cutoff = players[roundLimit - 1]?.points;
     const qualified = players.filter(p => p.points > cutoff);
     const tieBreakers = players.filter(p => p.points === cutoff);
     const top = qualified.concat(tieBreakers);
@@ -71,15 +69,11 @@ const setMatchWinner = async (req, res) => {
 const generateKnockoutMatches = async (req, res) => {
   try {
     const { tournamentId, topN } = req.body;
-
     if (!tournamentId || !topN) {
       return res.status(400).json({ message: 'tournamentId and topN are required' });
     }
 
-    const topPlayers = await Player.find({ tournamentId })
-      .sort({ points: -1 })
-      .limit(topN);
-
+    const topPlayers = await Player.find({ tournamentId }).sort({ points: -1 }).limit(topN);
     if (topPlayers.length < 2) {
       return res.status(400).json({ message: 'Not enough players for knockout' });
     }
@@ -89,7 +83,16 @@ const generateKnockoutMatches = async (req, res) => {
 
     for (let i = 0; i < shuffledPlayers.length; i += 2) {
       if (!shuffledPlayers[i + 1]) {
-        // Skip or handle bye here if needed
+        // Odd player: auto-advance
+        await Match.create({
+          tournamentId,
+          player1: shuffledPlayers[i],
+          player2: 'BYE',
+          status: 'completed',
+          winner: shuffledPlayers[i],
+          result: 'player1'
+        });
+        await Player.findOneAndUpdate({ name: shuffledPlayers[i], tournamentId }, { $inc: { points: 2 } });
         continue;
       }
 
@@ -116,9 +119,63 @@ const generateKnockoutMatches = async (req, res) => {
   }
 };
 
+// 5. Progress knockout rounds (until winner)
+const progressKnockouts = async (req, res) => {
+  try {
+    const { tournamentId } = req.params;
+
+    const completed = await Match.find({
+      tournamentId,
+      round: 'knockout',
+      status: 'completed'
+    });
+
+    const winners = completed.map(m => m.winner).filter(w => w && w !== 'BYE');
+    if (winners.length < 2) {
+      return res.json({ message: '🏆 Tournament winner declared', winner: winners[0] || null });
+    }
+
+    const today = new Date();
+    const matches = [];
+    const shuffled = shuffle(winners);
+
+    for (let i = 0; i < shuffled.length; i += 2) {
+      if (shuffled[i + 1]) {
+        const match = await Match.create({
+          tournamentId,
+          round: 'knockout',
+          player1: shuffled[i],
+          player2: shuffled[i + 1],
+          scheduledTime: today,
+          status: 'upcoming'
+        });
+        matches.push(match);
+      } else {
+        await Match.create({
+          tournamentId,
+          round: 'knockout',
+          player1: shuffled[i],
+          player2: 'BYE',
+          scheduledTime: today,
+          status: 'completed',
+          winner: shuffled[i],
+          result: 'player1'
+        });
+        await Player.findOneAndUpdate({ name: shuffled[i], tournamentId }, { $inc: { points: 2 } });
+      }
+    }
+
+    res.json({ message: 'Next knockout round scheduled', matches });
+  } catch (err) {
+    console.error('Knockout progression error:', err);
+    res.status(500).json({ message: 'Error progressing knockout' });
+  }
+};
+
 module.exports = {
   getLeaderboard,
   qualifyPlayers,
   setMatchWinner,
-  generateKnockoutMatches
+  generateKnockoutMatches,
+  progressKnockouts
 };
