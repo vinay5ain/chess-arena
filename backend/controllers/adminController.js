@@ -105,9 +105,9 @@ exports.autoMatchmaking = async (req, res) => {
     }
 
     // 2. Check if current round is complete
-    const roundMatches = existingMatches.filter(m => typeof m.round === 'number');
-    const maxRound = Math.max(...roundMatches.map(m => m.round));
-    const uncompleted = await Match.find({ tournamentId, round: maxRound, status: { $ne: 'completed' } });
+    const numberRounds = await Match.find({ tournamentId, round: { $type: 'number' } });
+    const maxRound = Math.max(...numberRounds.map(m => m.round));
+    const uncompleted = numberRounds.filter(m => m.round === maxRound && m.status !== 'completed');
 
     if (uncompleted.length > 0) {
       return res.status(400).json({ message: `Round ${maxRound} is still in progress.` });
