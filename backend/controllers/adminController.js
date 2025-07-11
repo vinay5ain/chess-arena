@@ -38,7 +38,7 @@ exports.setRounds = async (req, res) => {
   }
 };
 
-// 3. Auto Matchmaking
+// 3. Auto Matchmaking (with round promotion + knockout)
 exports.autoMatchmaking = async (req, res) => {
   try {
     const { tournamentId } = req.params;
@@ -50,15 +50,12 @@ exports.autoMatchmaking = async (req, res) => {
 
     const totalRounds = tournament.rounds;
     const existingMatches = await Match.find({ tournamentId });
-    const hasRounds = existingMatches.some(m => typeof m.round === 'number');
 
-    // 1. Generate all rounds only once
-    if (!hasRounds) {
+    const hasNumberedRounds = existingMatches.some(m => typeof m.round === 'number');
+    if (!hasNumberedRounds) {
       const allMatches = [];
       const today = new Date();
-      const byeHistory = new Set(
-        (await Match.find({ tournamentId, player2: 'BYE' })).map(m => m.player1)
-      );
+      const byeHistory = new Set();
 
       for (let round = 1; round <= totalRounds; round++) {
         const roundPlayers = shuffle(players.map(p => p.name));
@@ -104,19 +101,20 @@ exports.autoMatchmaking = async (req, res) => {
       return res.json({ message: '✅ All rounds generated. Round 1 is live.', matches: allMatches });
     }
 
-    // 2. Check if current round is complete
+    // Check current round and its completion
     const numberRounds = await Match.find({ tournamentId, round: { $type: 'number' } });
-    const maxRound = Math.max(...numberRounds.map(m => m.round));
-    const uncompleted = numberRounds.filter(m => m.round === maxRound && m.status !== 'completed');
+    const allRounds = [...new Set(numberRounds.map(m => m.round))].sort((a, b) => a - b);
+    const currentRound = Math.max(...allRounds);
 
+    const uncompleted = await Match.find({ tournamentId, round: currentRound, status: { $ne: 'completed' } });
     if (uncompleted.length > 0) {
-      return res.status(400).json({ message: `Round ${maxRound} is still in progress.` });
+      return res.status(400).json({ message: `Round ${currentRound} is still in progress.` });
     }
 
-    // 3. If all rounds done → trigger knockout
-    if (maxRound >= totalRounds) {
-      const knockoutExists = existingMatches.some(m => m.round === 'knockout');
-      if (knockoutExists) return res.json({ message: 'Knockout stage already started.' });
+    // If all rounds complete → start knockout
+    if (currentRound >= totalRounds) {
+      const knockoutExists = await Match.exists({ tournamentId, round: 'knockout' });
+      if (knockoutExists) return res.json({ message: 'Knockout already started.' });
 
       const topPlayers = await Player.find({ tournamentId }).sort({ points: -1 }).limit(8);
       if (topPlayers.length < 2) {
@@ -156,8 +154,8 @@ exports.autoMatchmaking = async (req, res) => {
       return res.json({ message: '✅ Knockout stage started.', matches: knockoutMatches });
     }
 
-    // 4. Promote next round to live
-    const nextRound = maxRound + 1;
+    // Promote next round to live
+    const nextRound = currentRound + 1;
     const upcomingMatches = await Match.find({ tournamentId, round: nextRound, status: 'upcoming' });
     if (upcomingMatches.length > 0) {
       await Match.updateMany(
@@ -167,7 +165,7 @@ exports.autoMatchmaking = async (req, res) => {
       return res.json({ message: `🔄 Round ${nextRound} promoted to live.`, matches: upcomingMatches });
     }
 
-    res.json({ message: '✅ No new matches to create. Wait for current round to complete.' });
+    res.json({ message: '✅ All rounds done or no matches found for next round.' });
 
   } catch (err) {
     console.error('AutoMatchmaking error:', err);
@@ -202,7 +200,7 @@ exports.setMatchWinner = async (req, res) => {
   }
 };
 
-// 5. Progress Knockout Rounds
+// 5. Progress Knockouts
 exports.progressKnockouts = async (req, res) => {
   try {
     const { tournamentId } = req.params;
@@ -230,7 +228,7 @@ exports.progressKnockouts = async (req, res) => {
           player1: shuffled[i],
           player2: shuffled[i + 1],
           scheduledTime: today,
-          status: 'live'
+          status: shuffled.length === 2 ? 'live' : 'live' // Optional: label final separately
         });
         matches.push(match);
       } else {
