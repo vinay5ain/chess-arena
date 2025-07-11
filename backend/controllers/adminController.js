@@ -56,12 +56,17 @@ exports.autoMatchmaking = async (req, res) => {
     if (!hasRounds) {
       const allMatches = [];
       const today = new Date();
+      const byeHistory = new Set(
+        (await Match.find({ tournamentId, player2: 'BYE' })).map(m => m.player1)
+      );
 
       for (let round = 1; round <= totalRounds; round++) {
-        const eligiblePlayers = shuffle(players.map(p => p.name));
-        while (eligiblePlayers.length >= 2) {
-          const p1 = eligiblePlayers.pop();
-          const p2 = eligiblePlayers.pop();
+        const roundPlayers = shuffle(players.map(p => p.name));
+        const roundMatches = [];
+
+        while (roundPlayers.length >= 2) {
+          const p1 = roundPlayers.pop();
+          const p2 = roundPlayers.pop();
           const match = await Match.create({
             tournamentId,
             round,
@@ -70,26 +75,30 @@ exports.autoMatchmaking = async (req, res) => {
             scheduledTime: today,
             status: round === 1 ? 'live' : 'upcoming'
           });
-          allMatches.push(match);
+          roundMatches.push(match);
         }
 
-        if (eligiblePlayers.length === 1) {
-          const byePlayer = eligiblePlayers.pop();
-          await Match.create({
-            tournamentId,
-            round,
-            player1: byePlayer,
-            player2: 'BYE',
-            scheduledTime: today,
-            status: round === 1 ? 'completed' : 'upcoming',
-            winner: round === 1 ? byePlayer : null,
-            result: round === 1 ? 'player1' : null
-          });
-
-          if (round === 1) {
-            await Player.findOneAndUpdate({ name: byePlayer, tournamentId }, { $inc: { points: 2 } });
+        if (roundPlayers.length === 1) {
+          const byePlayer = roundPlayers.pop();
+          if (!byeHistory.has(byePlayer)) {
+            await Match.create({
+              tournamentId,
+              round,
+              player1: byePlayer,
+              player2: 'BYE',
+              scheduledTime: today,
+              status: round === 1 ? 'completed' : 'upcoming',
+              winner: round === 1 ? byePlayer : null,
+              result: round === 1 ? 'player1' : null
+            });
+            byeHistory.add(byePlayer);
+            if (round === 1) {
+              await Player.findOneAndUpdate({ name: byePlayer, tournamentId }, { $inc: { points: 2 } });
+            }
           }
         }
+
+        allMatches.push(...roundMatches);
       }
 
       return res.json({ message: '✅ All rounds generated. Round 1 is live.', matches: allMatches });
@@ -126,7 +135,7 @@ exports.autoMatchmaking = async (req, res) => {
             player1: shuffledTop[i],
             player2: shuffledTop[i + 1],
             scheduledTime: today,
-            status: 'live' // ✅ live knockout match
+            status: 'live'
           });
           knockoutMatches.push(match);
         } else {
@@ -151,7 +160,10 @@ exports.autoMatchmaking = async (req, res) => {
     const nextRound = maxRound + 1;
     const upcomingMatches = await Match.find({ tournamentId, round: nextRound, status: 'upcoming' });
     if (upcomingMatches.length > 0) {
-      await Match.updateMany({ tournamentId, round: nextRound, status: 'upcoming' }, { $set: { status: 'live' } });
+      await Match.updateMany(
+        { tournamentId, round: nextRound, status: 'upcoming' },
+        { $set: { status: 'live' } }
+      );
       return res.json({ message: `🔄 Round ${nextRound} promoted to live.`, matches: upcomingMatches });
     }
 
@@ -218,7 +230,7 @@ exports.progressKnockouts = async (req, res) => {
           player1: shuffled[i],
           player2: shuffled[i + 1],
           scheduledTime: today,
-          status: 'live' // ✅ show knockout matches as live
+          status: 'live'
         });
         matches.push(match);
       } else {
