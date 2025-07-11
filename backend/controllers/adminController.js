@@ -126,7 +126,7 @@ exports.autoMatchmaking = async (req, res) => {
             player1: shuffledTop[i],
             player2: shuffledTop[i + 1],
             scheduledTime: today,
-            status: 'live' // ✅ Show immediately as live
+            status: 'live' // ✅ live knockout match
           });
           knockoutMatches.push(match);
         } else {
@@ -218,7 +218,7 @@ exports.progressKnockouts = async (req, res) => {
           player1: shuffled[i],
           player2: shuffled[i + 1],
           scheduledTime: today,
-          status: 'live' // ✅ live knockout progression
+          status: 'live' // ✅ show knockout matches as live
         });
         matches.push(match);
       } else {
