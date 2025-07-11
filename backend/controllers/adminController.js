@@ -42,7 +42,6 @@ exports.getLeaderboard = async (req, res) => {
       if (label === winnerName) label += ' 👑';
       else if (label === runnerUpName) label += ' 🥈';
       else if (label === thirdPlaceName) label += ' 🥉';
-
       return { ...p.toObject(), name: label };
     });
 
@@ -75,7 +74,7 @@ exports.setRounds = async (req, res) => {
   }
 };
 
-// 3. Auto Matchmaking
+// 3. Auto Matchmaking (Rounds + Knockout + Semi + Final)
 exports.autoMatchmaking = async (req, res) => {
   try {
     const { tournamentId } = req.params;
@@ -87,10 +86,17 @@ exports.autoMatchmaking = async (req, res) => {
 
     const totalRounds = tournament.rounds;
     const allMatches = await Match.find({ tournamentId });
-    const hasNumbered = allMatches.some(m => typeof m.round === 'number');
 
-    // 🧾 Generate rounds if not already done
-    if (!hasNumbered) {
+    const numberMatches = allMatches.filter(m => !isNaN(Number(m.round)));
+    const completedRounds = [...new Set(numberMatches.map(m => Number(m.round)))]
+      .filter(r => numberMatches.filter(m => Number(m.round) === r).every(m => m.status === 'completed'))
+      .sort((a, b) => a - b);
+
+    const lastCompletedRound = completedRounds.at(-1) || 0;
+    const nextRound = lastCompletedRound + 1;
+
+    // 🧾 Generate rounds if none exist
+    if (numberMatches.length === 0) {
       const byeHistory = new Set();
 
       for (let round = 1; round <= totalRounds; round++) {
@@ -133,35 +139,27 @@ exports.autoMatchmaking = async (req, res) => {
       return res.json({ message: '✅ All rounds generated. Round 1 is live.' });
     }
 
-    // ✅ Advance rounds
-    const numberMatches = await Match.find({ tournamentId, round: { $type: 'number' } });
-    const completedRounds = [...new Set(numberMatches.map(m => m.round))]
-      .filter(r => numberMatches.filter(m => m.round === r).every(m => m.status === 'completed'))
-      .sort((a, b) => a - b);
-
-    const lastCompletedRound = completedRounds.at(-1) || 0;
-    const nextRound = lastCompletedRound + 1;
-
-    // Promote next round to live
-    const nextRoundMatches = await Match.find({ tournamentId, round: nextRound, status: 'upcoming' });
+    // Promote next round
+    const nextRoundMatches = await Match.find({ tournamentId, round: `${nextRound}`, status: 'upcoming' });
     if (nextRoundMatches.length) {
-      await Match.updateMany({ tournamentId, round: nextRound, status: 'upcoming' }, { status: 'live' });
+      await Match.updateMany({ tournamentId, round: `${nextRound}`, status: 'upcoming' }, { status: 'live' });
       return res.json({ message: `🔄 Promoted Round ${nextRound} to live.`, matches: nextRoundMatches });
     }
 
-    // 🏁 Knockout logic
+    // Final/Semi/Knockout Logic
     const knockoutMatches = await Match.find({ tournamentId, round: 'knockout' });
     const semiFinalMatch = await Match.findOne({ tournamentId, round: 'semi-final' });
     const finalMatch = await Match.findOne({ tournamentId, round: 'final' });
 
-    if (finalMatch && finalMatch.status === 'completed') {
+    if (finalMatch?.status === 'completed') {
       return res.json({ message: '🏆 Final completed', winner: finalMatch.winner });
     }
 
     // ➕ Final after semi-final
-    if (semiFinalMatch && semiFinalMatch.status === 'completed' && !finalMatch) {
+    if (semiFinalMatch?.status === 'completed' && !finalMatch) {
       const semiWinner = semiFinalMatch.winner;
-      const topScorer = (await Player.find({ tournamentId }).sort({ points: -1 })).find(p => p.name !== semiWinner);
+      const topScorer = (await Player.find({ tournamentId }).sort({ points: -1 }))
+        .find(p => p.name !== semiWinner);
 
       if (topScorer) {
         const final = await Match.create({
@@ -172,15 +170,15 @@ exports.autoMatchmaking = async (req, res) => {
           scheduledTime: today,
           status: 'live'
         });
-
         return res.json({ message: '👑 Final match created', match: final });
       }
     }
 
-    // ➕ Semi-final if odd winners
+    // ➕ Semi-final logic
     if (lastCompletedRound >= totalRounds && knockoutMatches.every(m => m.status === 'completed') && !finalMatch && !semiFinalMatch) {
       const winners = knockoutMatches.map(m => m.winner).filter(w => w !== 'BYE');
-      const top = await Player.find({ tournamentId }).then(all => all.filter(p => winners.includes(p.name)).sort((a, b) => b.points - a.points));
+      const top = await Player.find({ tournamentId })
+        .then(all => all.filter(p => winners.includes(p.name)).sort((a, b) => b.points - a.points));
 
       if (winners.length === 1) {
         return res.json({ message: '🏆 Auto-winner', winner: winners[0] });
@@ -189,12 +187,27 @@ exports.autoMatchmaking = async (req, res) => {
       if (winners.length % 2 === 1) {
         const finalist = top[0].name;
         const [p1, p2] = shuffle(winners.filter(w => w !== finalist));
-        await Match.create({ tournamentId, round: 'semi-final', player1: p1, player2: p2, scheduledTime: today, status: 'live' });
-        return res.json({ message: `🔁 Semi-final match created between ${p1} and ${p2}. Finalist waiting: ${finalist}` });
+        await Match.create({
+          tournamentId,
+          round: 'semi-final',
+          player1: p1,
+          player2: p2,
+          scheduledTime: today,
+          status: 'live'
+        });
+        return res.json({ message: `🔁 Semi-final match: ${p1} vs ${p2}. Finalist waiting: ${finalist}` });
       }
 
-      const final = await Match.create({ tournamentId, round: 'final', player1: top[0].name, player2: top[1].name, scheduledTime: today, status: 'live' });
-      return res.json({ message: '👑 Final match created.', match: final });
+      const final = await Match.create({
+        tournamentId,
+        round: 'final',
+        player1: top[0].name,
+        player2: top[1].name,
+        scheduledTime: today,
+        status: 'live'
+      });
+
+      return res.json({ message: '👑 Final match created', match: final });
     }
 
     // ➕ Knockout start
@@ -204,24 +217,40 @@ exports.autoMatchmaking = async (req, res) => {
 
       for (let i = 0; i < names.length; i += 2) {
         if (names[i + 1]) {
-          await Match.create({ tournamentId, round: 'knockout', player1: names[i], player2: names[i + 1], scheduledTime: today, status: 'live' });
+          await Match.create({
+            tournamentId,
+            round: 'knockout',
+            player1: names[i],
+            player2: names[i + 1],
+            scheduledTime: today,
+            status: 'live'
+          });
         } else {
-          await Match.create({ tournamentId, round: 'knockout', player1: names[i], player2: 'BYE', scheduledTime: today, status: 'completed', winner: names[i], result: 'player1' });
+          await Match.create({
+            tournamentId,
+            round: 'knockout',
+            player1: names[i],
+            player2: 'BYE',
+            scheduledTime: today,
+            status: 'completed',
+            winner: names[i],
+            result: 'player1'
+          });
           await Player.findOneAndUpdate({ name: names[i], tournamentId }, { $inc: { points: 2 } });
         }
       }
 
-      return res.json({ message: '✅ Knockout started.' });
+      return res.json({ message: '✅ Knockout stage started.' });
     }
 
-    res.json({ message: '✅ Waiting for match completions' });
+    return res.json({ message: '✅ Waiting for match completions' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Auto matchmaking error' });
   }
 };
 
-// 4. Set Winner
+// 4. Set Match Winner
 exports.setMatchWinner = async (req, res) => {
   try {
     const { matchId } = req.params;
