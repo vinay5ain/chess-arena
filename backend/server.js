@@ -34,8 +34,7 @@ app.use('/api/player', require('./routes/playerRoutes'));
 app.use('/api/matches', require('./routes/matchRoutes'));
 app.use('/api/tournament', require('./routes/tournamentRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
-app.use('/api/round', require('./routes/roundRoutes'));
-app.use('/api/knockout', require('./routes/knockoutRoutes'));
+app.use('/api/round', require('./routes/roundRoutes')); // includes knockout logic
 
 // ✅ Serve frontend from public folder
 app.use(express.static(path.join(__dirname, '../public')));
@@ -59,7 +58,7 @@ app.use((err, req, res, next) => {
 // 🌐 Start server
 const PORT = process.env.PORT || 5000;
 const HOST = '0.0.0.0'; // Listen on all interfaces for LAN access
-const LOCAL_IP = '192.168.1.43'; // Replace with your current IP if it changes
+const LOCAL_IP = '192.168.1.43'; // Replace with your local IP if testing in LAN
 
 app.listen(PORT, HOST, () => {
   console.log(`🚀 Server is running at http://localhost:${PORT}`);
