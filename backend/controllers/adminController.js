@@ -112,10 +112,13 @@ exports.autoMatchmaking = async (req, res) => {
 
     const nextRound = lastCompletedRound + 1;
 
-    // Knockout Stage
+    // Knockout Stage Trigger
     if (lastCompletedRound >= totalRounds) {
       const knockoutExists = await Match.exists({ tournamentId, round: 'knockout' });
-      if (knockoutExists) return res.json({ message: 'Knockout already started.' });
+      const finalExists = await Match.exists({ tournamentId, round: 'final' });
+      if (knockoutExists || finalExists) {
+        return res.json({ message: 'Knockout or Final already started.' });
+      }
 
       const topPlayers = await Player.find({ tournamentId }).sort({ points: -1 }).limit(8);
       if (topPlayers.length < 2) {
@@ -199,7 +202,7 @@ exports.setMatchWinner = async (req, res) => {
   }
 };
 
-// 5. Progress Knockout Rounds
+// 5. Progress Knockout Rounds → Includes Final Handling
 exports.progressKnockouts = async (req, res) => {
   try {
     const { tournamentId } = req.params;
@@ -215,38 +218,94 @@ exports.progressKnockouts = async (req, res) => {
       return res.json({ message: '🏆 Tournament winner declared', winner: winners[0] || null });
     }
 
-    const today = new Date();
-    const matches = [];
-    const shuffled = shuffle(winners);
-
-    for (let i = 0; i < shuffled.length; i += 2) {
-      if (shuffled[i + 1]) {
-        const match = await Match.create({
-          tournamentId,
-          round: shuffled.length === 2 ? 'final' : 'knockout',
-          player1: shuffled[i],
-          player2: shuffled[i + 1],
-          scheduledTime: today,
-          status: 'live'
-        });
-        matches.push(match);
-      } else {
-        await Match.create({
-          tournamentId,
-          round: shuffled.length === 2 ? 'final' : 'knockout',
-          player1: shuffled[i],
-          player2: 'BYE',
-          scheduledTime: today,
-          status: 'completed',
-          winner: shuffled[i],
-          result: 'player1'
-        });
-        await Player.findOneAndUpdate({ name: shuffled[i], tournamentId }, { $inc: { points: 2 } });
-      }
+    const finalExists = await Match.exists({ tournamentId, round: 'final' });
+    if (finalExists) {
+      return res.json({ message: 'Final already created.' });
     }
 
-    res.json({ message: 'Next knockout round scheduled', matches });
+    const today = new Date();
+
+    // 👑 Final round with exactly 2 players
+    if (winners.length === 2) {
+      const finalMatch = await Match.create({
+        tournamentId,
+        round: 'final',
+        player1: winners[0],
+        player2: winners[1],
+        scheduledTime: today,
+        status: 'live'
+      });
+      return res.json({ message: '👑 Final match created', final: finalMatch });
+    }
+
+    // ⚖️ Odd number → Top scorer to Final
+    if (winners.length % 2 === 1) {
+      const players = await Player.find({ tournamentId });
+      const top = players
+        .filter(p => winners.includes(p.name))
+        .sort((a, b) => b.points - a.points)[0];
+
+      const others = winners.filter(name => name !== top.name);
+      const shuffled = shuffle(others);
+
+      for (let i = 0; i < shuffled.length; i += 2) {
+        if (shuffled[i + 1]) {
+          await Match.create({
+            tournamentId,
+            round: 'knockout',
+            player1: shuffled[i],
+            player2: shuffled[i + 1],
+            scheduledTime: today,
+            status: 'live'
+          });
+        } else {
+          await Match.create({
+            tournamentId,
+            round: 'knockout',
+            player1: shuffled[i],
+            player2: 'BYE',
+            scheduledTime: today,
+            status: 'completed',
+            winner: shuffled[i],
+            result: 'player1'
+          });
+          await Player.findOneAndUpdate({ name: shuffled[i], tournamentId }, { $inc: { points: 2 } });
+
+          const finalMatch = await Match.create({
+            tournamentId,
+            round: 'final',
+            player1: top.name,
+            player2: shuffled[i],
+            scheduledTime: today,
+            status: 'live'
+          });
+
+          return res.json({ message: '👑 Final match created', final: finalMatch });
+        }
+      }
+
+      return res.json({ message: '✅ Next knockout round scheduled.' });
+    }
+
+    // Regular knockout
+    const shuffled = shuffle(winners);
+    const matches = [];
+    for (let i = 0; i < shuffled.length; i += 2) {
+      const match = await Match.create({
+        tournamentId,
+        round: 'knockout',
+        player1: shuffled[i],
+        player2: shuffled[i + 1],
+        scheduledTime: today,
+        status: 'live'
+      });
+      matches.push(match);
+    }
+
+    res.json({ message: '✅ Next knockout round scheduled', matches });
+
   } catch (err) {
+    console.error('Progress Knockout Error:', err);
     res.status(500).json({ message: 'Error progressing knockout' });
   }
 };
