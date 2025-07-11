@@ -15,7 +15,7 @@ exports.getLeaderboard = async (req, res) => {
   }
 };
 
-// 2. Set Rounds (Locked after first time)
+// 2. Set Rounds (locked permanently)
 exports.setRounds = async (req, res) => {
   try {
     const { tournamentId } = req.params;
@@ -38,7 +38,7 @@ exports.setRounds = async (req, res) => {
   }
 };
 
-// 3. Auto Matchmaking (Pre-generate All Rounds Once)
+// 3. Auto Matchmaking
 exports.autoMatchmaking = async (req, res) => {
   try {
     const { tournamentId } = req.params;
@@ -49,11 +49,10 @@ exports.autoMatchmaking = async (req, res) => {
     if (players.length < 2) return res.status(400).json({ message: 'Not enough players to create matches.' });
 
     const totalRounds = tournament.rounds;
-
     const existingMatches = await Match.find({ tournamentId });
     const hasRounds = existingMatches.some(m => typeof m.round === 'number');
 
-    // Step 1: If no rounds yet → generate all rounds
+    // 1. Generate all rounds only once
     if (!hasRounds) {
       const allMatches = [];
       const today = new Date();
@@ -96,16 +95,17 @@ exports.autoMatchmaking = async (req, res) => {
       return res.json({ message: '✅ All rounds generated. Round 1 is live.', matches: allMatches });
     }
 
-    // Step 2: Check for round completion and trigger knockout if all rounds are done
-    const maxRound = Math.max(...existingMatches.filter(m => typeof m.round === 'number').map(m => m.round));
+    // 2. Check if current round is complete
+    const roundMatches = existingMatches.filter(m => typeof m.round === 'number');
+    const maxRound = Math.max(...roundMatches.map(m => m.round));
     const uncompleted = await Match.find({ tournamentId, round: maxRound, status: { $ne: 'completed' } });
 
     if (uncompleted.length > 0) {
       return res.status(400).json({ message: `Round ${maxRound} is still in progress.` });
     }
 
+    // 3. If all rounds done → trigger knockout
     if (maxRound >= totalRounds) {
-      // Start Knockout
       const knockoutExists = existingMatches.some(m => m.round === 'knockout');
       if (knockoutExists) return res.json({ message: 'Knockout stage already started.' });
 
@@ -126,7 +126,7 @@ exports.autoMatchmaking = async (req, res) => {
             player1: shuffledTop[i],
             player2: shuffledTop[i + 1],
             scheduledTime: today,
-            status: 'upcoming'
+            status: 'live' // ✅ Show immediately as live
           });
           knockoutMatches.push(match);
         } else {
@@ -147,7 +147,16 @@ exports.autoMatchmaking = async (req, res) => {
       return res.json({ message: '✅ Knockout stage started.', matches: knockoutMatches });
     }
 
+    // 4. Promote next round to live
+    const nextRound = maxRound + 1;
+    const upcomingMatches = await Match.find({ tournamentId, round: nextRound, status: 'upcoming' });
+    if (upcomingMatches.length > 0) {
+      await Match.updateMany({ tournamentId, round: nextRound, status: 'upcoming' }, { $set: { status: 'live' } });
+      return res.json({ message: `🔄 Round ${nextRound} promoted to live.`, matches: upcomingMatches });
+    }
+
     res.json({ message: '✅ No new matches to create. Wait for current round to complete.' });
+
   } catch (err) {
     console.error('AutoMatchmaking error:', err);
     res.status(500).json({ message: 'Server error during matchmaking' });
@@ -209,7 +218,7 @@ exports.progressKnockouts = async (req, res) => {
           player1: shuffled[i],
           player2: shuffled[i + 1],
           scheduledTime: today,
-          status: 'upcoming'
+          status: 'live' // ✅ live knockout progression
         });
         matches.push(match);
       } else {
@@ -233,7 +242,7 @@ exports.progressKnockouts = async (req, res) => {
   }
 };
 
-// 6. Get Match History
+// 6. Match History
 exports.getMatchHistory = async (req, res) => {
   try {
     const { tournamentId } = req.params;
