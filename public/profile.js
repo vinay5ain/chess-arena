@@ -1,8 +1,9 @@
-// ✅ Use deployed backend URL instead of localhost
 const BACKEND_URL = 'https://chess-arena-l9c4.onrender.com';
 
 const playerId = localStorage.getItem('playerId');
-if (!playerId) window.location.href = 'join.html';
+if (!playerId) {
+  window.location.href = 'join.html';
+}
 
 let playerName = '';
 
@@ -46,11 +47,7 @@ async function fetchMatches() {
     }
 
     const totalMatches = [...data.ongoing, ...data.upcoming, ...data.history];
-    const wins = data.history.filter(m =>
-      typeof m.winner === 'string' &&
-      typeof playerName === 'string' &&
-      m.winner.toLowerCase() === playerName.toLowerCase()
-    ).length;
+    const wins = data.history.filter(m => m.winner?.toLowerCase() === playerName.toLowerCase()).length;
     const losses = data.history.length - wins;
 
     document.getElementById('matchesPlayed').textContent = totalMatches.length;
@@ -93,4 +90,5 @@ function logout() {
   window.location.href = 'join.html';
 }
 
+// Start everything
 fetchProfile();

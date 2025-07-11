@@ -4,77 +4,67 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chess Arena</title>
-  <link rel="stylesheet" href="index.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css" />
 </head>
 <body>
   <header>
-    <h1><i class="fas fa-chess-knight"></i> Chess Arena ♞</h1>
+    <div class="logo">
+      <i class="fas fa-chess-knight"></i> Chess Arena <i class="fas fa-horse-head"></i>
+    </div>
     <nav>
-      <div class="nav-container">
-        <ul id="nav-links">
-          <li><a href="#about"><i class="fas fa-info-circle"></i> About ♙</a></li>
-          <li><a href="#services"><i class="fas fa-cogs"></i> Services ♜</a></li>
-          <li><a href="#blog"><i class="fas fa-pen-nib"></i> Blog ♛</a></li>
-          <li><a href="#contact"><i class="fas fa-envelope"></i> Contact ♚</a></li>
-          <li><button class="nav-login-btn" onclick="showLoginForm()"><i class="fas fa-user-plus"></i> Join ♘</button></li>
-        </ul>
-        <div class="hamburger" onclick="toggleMenu()">
-          <i class="fas fa-bars"></i>
-        </div>
+      <div class="hamburger" onclick="toggleMenu()">
+        <i class="fas fa-bars"></i>
       </div>
+      <ul id="nav-links">
+        <li><a href="#about"><i class="fas fa-info-circle"></i> About</a></li>
+        <li><a href="#services"><i class="fas fa-cogs"></i> Services</a></li>
+        <li><a href="#blog"><i class="fas fa-pen-nib"></i> Blog</a></li>
+        <li><a href="#contact"><i class="fas fa-envelope"></i> Contact</a></li>
+        <li><button class="join-btn" onclick="showLoginForm()"><i class="fas fa-user-plus"></i> Join</button></li>
+      </ul>
     </nav>
   </header>
 
   <section class="hero">
-    <h2>♔ Join the Ultimate Online Chess Arena ♔</h2>
+    <h1><i class="fas fa-chess-king"></i> Join the Ultimate Online Chess Arena <i class="fas fa-chess-king"></i></h1>
     <p>Whether you're here to sharpen your skills, compete in tournaments, or just enjoy watching battles — Chess Arena is your virtual home.</p>
-    <pre style="font-size: 20px;">
-⬛⬜⬛⬜⬛⬜⬛⬜
-⬜⬛⬜⬛⬜⬛⬜⬛
-⬛⬜⬛⬜⬛⬜⬛⬜
-⬜⬛⬜⬛⬜⬛⬜⬛
-⬛⬜⬛⬜⬛⬜⬛⬜
-⬜⬛⬜⬛⬜⬛⬜⬛
-⬛⬜⬛⬜⬛⬜⬛⬜
-⬜⬛⬜⬛⬜⬛⬜⬛
-    </pre>
   </section>
 
   <section class="login-form hidden" id="login-form">
     <form onsubmit="return false;">
+      <h2>Sign Up</h2>
       <label for="email">Email</label>
       <input type="email" id="email" placeholder="Enter your email" required />
-
-      <label for="name">Participant Name</label>
+      <label for="name">Name</label>
       <input type="text" id="name" placeholder="Enter your name" required />
-
       <div class="diagonal-buttons">
-        <button type="button" class="login-btn" onclick="handleLogin('participant')">♙ Participant</button>
-        <button type="button" class="login-btn" onclick="handleLogin('organizer')">♖ Organizer</button>
+        <button type="button" onclick="handleLogin('participant')">♙ Participant</button>
+        <button type="button" onclick="handleLogin('organizer')">♖ Organizer</button>
       </div>
     </form>
   </section>
 
   <main>
     <section id="about">
-      <h2>♛ About</h2>
-      <p>Chess Arena is your battlefield. We organize digital tournaments, maintain ELO-style rankings, and offer real-time tracking of matches and replays.</p>
+      <h2><i class="fas fa-chess-queen"></i> About</h2>
+      <p>We organize tournaments, maintain rankings, and offer live tracking of matches & replays.</p>
     </section>
 
     <section id="services">
-      <h2>♖ Services</h2>
-      <p>Live games, AI cheat detection, replays, real-time pairings, and powerful tournament management — all in one place.</p>
+      <h2><i class="fas fa-chess-rook"></i> Services</h2>
+      <p>Live games, AI cheat detection, replays, real-time pairings, and more — all in one arena.</p>
     </section>
 
     <section id="blog">
-      <h2>♕ Blog</h2>
-      <p>Discover tips, strategies, and insights into the world of modern chess — from classic openings to new AI trends.</p>
+      <h2><i class="fas fa-chess-bishop"></i> Blog</h2>
+      <p>Read tips, strategies, and AI insights to boost your chess mastery.</p>
     </section>
 
     <section id="contact">
-      <h2>♚ Contact</h2>
-      <p>Write to us at <strong>support@chessarena.com</strong> for help, ideas, or partnerships.</p>
+      <h2><i class="fas fa-chess-pawn"></i> Contact</h2>
+      <p>Write to <strong>support@chessarena.com</strong> for support or partnership.</p>
     </section>
   </main>
 
@@ -82,6 +72,19 @@
     <p>♙♘♖ &copy; 2025 Chess Arena. All rights reserved. ♔♕♚</p>
   </footer>
 
-  <script src="index.js"></script>
+  <script>
+    function toggleMenu() {
+      const navLinks = document.getElementById('nav-links');
+      navLinks.classList.toggle('show');
+    }
+
+    function showLoginForm() {
+      document.getElementById('login-form').classList.toggle('hidden');
+    }
+
+    function handleLogin(role) {
+      alert("You joined as a " + role + "!");
+    }
+  </script>
 </body>
 </html>

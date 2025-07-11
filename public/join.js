@@ -1,4 +1,4 @@
-const backendURL = 'https://chess-arena-l9c4.onrender.com'; // ✅ your live backend
+const backendURL = 'https://chess-arena-l9c4.onrender.com';
 
 const tabJoin = document.getElementById('tab-join');
 const tabLogin = document.getElementById('tab-login');
@@ -29,6 +29,7 @@ typeSelect.addEventListener('change', () => {
   entryFeeSection.classList.toggle('hidden', isPrivate);
 });
 
+// ✅ Join Tournament
 document.getElementById('joinForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const errorEl = document.getElementById('join-error');
@@ -44,14 +45,14 @@ document.getElementById('joinForm').addEventListener('submit', async (e) => {
   if (!email.includes('@')) email += '@gmail.com';
 
   try {
-    const resp = await fetch(`${backendURL}/api/tournament/join`, {
+    const res = await fetch(`${backendURL}/api/tournament/join`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerName, email, tournamentName, isPrivate, accessKey, entryFee })
     });
 
-    const data = await resp.json();
-    if (!resp.ok) throw new Error(data.message || resp.statusText);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || res.statusText);
 
     alert('✅ Joined! Your Player ID: ' + data.player.playerId);
     localStorage.setItem('playerId', data.player.playerId);
@@ -62,6 +63,7 @@ document.getElementById('joinForm').addEventListener('submit', async (e) => {
   }
 });
 
+// ✅ Login
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const errorEl = document.getElementById('login-error');
@@ -71,19 +73,18 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   const loginId = document.getElementById('loginId').value.trim();
 
   try {
-    const resp = await fetch(`${backendURL}/api/player/profile/${encodeURIComponent(loginId)}`);
-    const player = await resp.json();
+    const res = await fetch(`${backendURL}/api/player/profile/${encodeURIComponent(loginId)}`);
+    const player = await res.json();
 
-    if (!resp.ok || !player.name) {
-      throw new Error(player.message || 'Player not found');
-    }
+    if (!res.ok || !player.name) throw new Error(player.message || 'Player not found');
 
-    if (typeof player.name !== 'string' || player.name.toLowerCase() !== loginName.toLowerCase()) {
+    if (player.name.toLowerCase() !== loginName.toLowerCase()) {
       throw new Error('Name and ID do not match');
     }
 
     localStorage.setItem('playerId', player.playerId);
     localStorage.setItem('playerName', player.name);
+
     alert('✅ Logged in!');
     window.location.href = 'profile.html';
   } catch (err) {
