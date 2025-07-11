@@ -4,18 +4,65 @@ const Tournament = require('../models/tournament');
 
 const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
 
-// 1. Get Leaderboard
+// 1. Leaderboard with 👑 🥈 🥉
 exports.getLeaderboard = async (req, res) => {
   try {
     const { tournamentId } = req.params;
     const players = await Player.find({ tournamentId }).sort({ points: -1 });
-    res.json(players);
+
+    let winnerName = null;
+    let runnerUpName = null;
+    let thirdPlaceName = null;
+
+    const finalMatch = await Match.findOne({ tournamentId, round: 'final', status: 'completed' });
+    if (finalMatch) {
+      winnerName = finalMatch.winner;
+      runnerUpName = finalMatch.winner === finalMatch.player1 ? finalMatch.player2 : finalMatch.player1;
+    }
+
+    const semiFinalMatch = await Match.findOne({ tournamentId, round: 'semi-final', status: 'completed' });
+    if (semiFinalMatch) {
+      const semiLoser = semiFinalMatch.winner === semiFinalMatch.player1 ? semiFinalMatch.player2 : semiFinalMatch.player1;
+      thirdPlaceName = semiLoser;
+    } else {
+      const knockoutMatches = await Match.find({ tournamentId, round: 'knockout', status: 'completed' });
+      const allKnockoutPlayers = knockoutMatches.flatMap(m => [m.player1, m.player2]);
+      const knockoutWinners = knockoutMatches.map(m => m.winner);
+      const knockoutLosers = allKnockoutPlayers.filter(p => !knockoutWinners.includes(p) && p !== 'BYE');
+
+      const allPlayers = await Player.find({ tournamentId });
+      const sortedLosers = allPlayers
+        .filter(p => knockoutLosers.includes(p.name))
+        .sort((a, b) => b.points - a.points);
+
+      if (sortedLosers.length > 0) {
+        thirdPlaceName = sortedLosers[0].name;
+      }
+    }
+
+    const leaderboard = players.map(player => {
+      let displayName = player.name;
+      if (player.name === winnerName) {
+        displayName += ' 👑';
+      } else if (player.name === runnerUpName) {
+        displayName += ' 🥈';
+      } else if (player.name === thirdPlaceName) {
+        displayName += ' 🥉';
+      }
+      return {
+        ...player.toObject(),
+        name: displayName
+      };
+    });
+
+    res.json(leaderboard);
   } catch (err) {
+    console.error('Leaderboard error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// 2. Set Rounds (locked permanently)
+// 2. Set Rounds (locked once)
 exports.setRounds = async (req, res) => {
   try {
     const { tournamentId } = req.params;
@@ -25,7 +72,7 @@ exports.setRounds = async (req, res) => {
     if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
 
     if (tournament.roundsLocked) {
-      return res.status(400).json({ message: 'Rounds already locked and cannot be changed' });
+      return res.status(400).json({ message: 'Rounds already locked' });
     }
 
     tournament.rounds = rounds;
@@ -38,7 +85,7 @@ exports.setRounds = async (req, res) => {
   }
 };
 
-// 3. Auto Matchmaking (Rounds + Knockout + Final)
+// 3. Auto Matchmaking (rounds + knockout + semi + final)
 exports.autoMatchmaking = async (req, res) => {
   try {
     const { tournamentId } = req.params;
@@ -46,17 +93,18 @@ exports.autoMatchmaking = async (req, res) => {
     if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
 
     const players = await Player.find({ tournamentId });
-    if (players.length < 2) return res.status(400).json({ message: 'Not enough players to create matches.' });
+    if (players.length < 2) return res.status(400).json({ message: 'Not enough players' });
 
     const totalRounds = tournament.rounds;
     const existingMatches = await Match.find({ tournamentId });
-
-    const hasNumberedRounds = existingMatches.some(m => typeof m.round === 'number');
     const today = new Date();
 
-    // ➤ Initial round generation
+    const hasNumberedRounds = existingMatches.some(m => typeof m.round === 'number');
+
+    // 1️⃣ Generate all rounds
     if (!hasNumberedRounds) {
       const byeHistory = new Set();
+
       for (let round = 1; round <= totalRounds; round++) {
         const roundPlayers = shuffle(players.map(p => p.name));
         while (roundPlayers.length >= 2) {
@@ -96,128 +144,139 @@ exports.autoMatchmaking = async (req, res) => {
       return res.json({ message: '✅ All rounds generated. Round 1 is live.' });
     }
 
-    // ➤ Check current round status
+    // 2️⃣ Check current round status
     const numberMatches = await Match.find({ tournamentId, round: { $type: 'number' } });
     const rounds = [...new Set(numberMatches.map(m => m.round))].sort((a, b) => a - b);
-
     let lastCompletedRound = 0;
+
     for (const r of rounds) {
       const matchesInRound = numberMatches.filter(m => m.round === r);
-      const allCompleted = matchesInRound.every(m => m.status === 'completed');
-      if (allCompleted) {
+      if (matchesInRound.every(m => m.status === 'completed')) {
         lastCompletedRound = r;
-      } else {
-        break;
-      }
+      } else break;
     }
 
     const nextRound = lastCompletedRound + 1;
 
-    // ➤ Knockout & Final Progression
-    if (lastCompletedRound >= totalRounds) {
-      const knockoutMatches = await Match.find({ tournamentId, round: 'knockout' });
-      const knockoutCompleted = knockoutMatches.length > 0 && knockoutMatches.every(m => m.status === 'completed');
+    const knockoutMatches = await Match.find({ tournamentId, round: 'knockout' });
+    const knockoutCompleted = knockoutMatches.length > 0 && knockoutMatches.every(m => m.status === 'completed');
 
-      const finalExists = await Match.exists({ tournamentId, round: 'final' });
+    const finalMatch = await Match.findOne({ tournamentId, round: 'final' });
+    const semiFinalMatch = await Match.findOne({ tournamentId, round: 'semi-final' });
 
-      // 🏁 Final creation if knockout is done and final not started
-      if (knockoutCompleted && !finalExists) {
-        const winners = knockoutMatches.filter(m => m.winner && m.winner !== 'BYE').map(m => m.winner);
-        const today = new Date();
+    // ✅ Final completed
+    if (finalMatch && finalMatch.status === 'completed') {
+      return res.json({ message: '🏆 Tournament winner declared', winner: finalMatch.winner });
+    }
 
-        if (winners.length === 1) {
-          return res.json({ message: '🏆 Tournament winner declared automatically', winner: winners[0] });
-        }
+    // ✅ Final trigger after semi-final
+    if (semiFinalMatch && semiFinalMatch.status === 'completed' && !finalMatch) {
+      const semiWinner = semiFinalMatch.winner;
+      const topPlayers = await Player.find({ tournamentId }).sort((a, b) => b.points - a.points);
+      const topScorer = topPlayers.find(p => p.name !== semiWinner);
 
-        if (winners.length >= 2) {
-          const topPlayers = await Player.find({ tournamentId });
-          const sortedWinners = topPlayers
-            .filter(p => winners.includes(p.name))
-            .sort((a, b) => b.points - a.points);
+      if (topScorer) {
+        const final = await Match.create({
+          tournamentId,
+          round: 'final',
+          player1: topScorer.name,
+          player2: semiWinner,
+          scheduledTime: today,
+          status: 'live'
+        });
+        return res.json({ message: '👑 Final match created (after semi-final)', match: final });
+      }
+    }
 
-          if (winners.length % 2 === 1) {
-            const top = sortedWinners[0].name;
-            const opponent = sortedWinners[1]?.name || winners.find(w => w !== top);
+    // ✅ Create knockout or semi-final/final
+    if (lastCompletedRound >= totalRounds && knockoutCompleted && !finalMatch && !semiFinalMatch) {
+      const winners = knockoutMatches.filter(m => m.winner && m.winner !== 'BYE').map(m => m.winner);
+      if (winners.length === 1) {
+        return res.json({ message: '🏆 Tournament winner declared', winner: winners[0] });
+      }
 
-            const finalMatch = await Match.create({
-              tournamentId,
-              round: 'final',
-              player1: top,
-              player2: opponent,
-              scheduledTime: today,
-              status: 'live'
-            });
+      const topPlayers = await Player.find({ tournamentId });
+      const sorted = topPlayers.filter(p => winners.includes(p.name)).sort((a, b) => b.points - a.points);
 
-            return res.json({ message: '👑 Final match created (odd winners)', match: finalMatch });
-          }
+      if (winners.length % 2 === 1) {
+        const finalist = sorted[0].name;
+        const contenders = winners.filter(w => w !== finalist);
+        const [p1, p2] = shuffle(contenders);
 
-          // Even number of winners
-          const finalMatch = await Match.create({
+        await Match.create({
+          tournamentId,
+          round: 'semi-final',
+          player1: p1,
+          player2: p2,
+          scheduledTime: today,
+          status: 'live'
+        });
+
+        return res.json({ message: `🔁 Semi-final: ${p1} vs ${p2}. Winner will face ${finalist} in final.` });
+      }
+
+      const final = await Match.create({
+        tournamentId,
+        round: 'final',
+        player1: sorted[0].name,
+        player2: sorted[1].name,
+        scheduledTime: today,
+        status: 'live'
+      });
+
+      return res.json({ message: '👑 Final match created', match: final });
+    }
+
+    // ✅ Knockout stage start
+    if (lastCompletedRound >= totalRounds && knockoutMatches.length === 0) {
+      const topPlayers = await Player.find({ tournamentId }).sort({ points: -1 }).limit(8);
+      if (topPlayers.length < 2) {
+        return res.json({ message: '🏆 Tournament winner declared', winner: topPlayers[0]?.name || null });
+      }
+
+      const shuffledTop = shuffle(topPlayers.map(p => p.name));
+      const matches = [];
+
+      for (let i = 0; i < shuffledTop.length; i += 2) {
+        if (shuffledTop[i + 1]) {
+          const match = await Match.create({
             tournamentId,
-            round: 'final',
-            player1: sortedWinners[0].name,
-            player2: sortedWinners[1].name,
+            round: 'knockout',
+            player1: shuffledTop[i],
+            player2: shuffledTop[i + 1],
             scheduledTime: today,
             status: 'live'
           });
-
-          return res.json({ message: '👑 Final match created', match: finalMatch });
+          matches.push(match);
+        } else {
+          await Match.create({
+            tournamentId,
+            round: 'knockout',
+            player1: shuffledTop[i],
+            player2: 'BYE',
+            scheduledTime: today,
+            status: 'completed',
+            winner: shuffledTop[i],
+            result: 'player1'
+          });
+          await Player.findOneAndUpdate({ name: shuffledTop[i], tournamentId }, { $inc: { points: 2 } });
         }
       }
 
-      // If knockout not yet started
-      if (knockoutMatches.length === 0) {
-        const topPlayers = await Player.find({ tournamentId }).sort({ points: -1 }).limit(8);
-        if (topPlayers.length < 2) {
-          return res.json({ message: '🏆 Tournament winner declared automatically', winner: topPlayers[0]?.name || null });
-        }
-
-        const shuffledTop = shuffle(topPlayers.map(p => p.name));
-        const matches = [];
-
-        for (let i = 0; i < shuffledTop.length; i += 2) {
-          if (shuffledTop[i + 1]) {
-            const match = await Match.create({
-              tournamentId,
-              round: 'knockout',
-              player1: shuffledTop[i],
-              player2: shuffledTop[i + 1],
-              scheduledTime: today,
-              status: 'live'
-            });
-            matches.push(match);
-          } else {
-            await Match.create({
-              tournamentId,
-              round: 'knockout',
-              player1: shuffledTop[i],
-              player2: 'BYE',
-              scheduledTime: today,
-              status: 'completed',
-              winner: shuffledTop[i],
-              result: 'player1'
-            });
-            await Player.findOneAndUpdate({ name: shuffledTop[i], tournamentId }, { $inc: { points: 2 } });
-          }
-        }
-
-        return res.json({ message: '✅ Knockout stage started.', matches });
-      }
-
-      return res.json({ message: '✅ Waiting for knockout or final matches to complete.' });
+      return res.json({ message: '✅ Knockout stage started.', matches });
     }
 
-    // ➤ Promote next round
-    const upcomingMatches = await Match.find({ tournamentId, round: nextRound, status: 'upcoming' });
-    if (upcomingMatches.length > 0) {
+    // ✅ Promote next round
+    const upcoming = await Match.find({ tournamentId, round: nextRound, status: 'upcoming' });
+    if (upcoming.length > 0) {
       await Match.updateMany(
         { tournamentId, round: nextRound, status: 'upcoming' },
         { $set: { status: 'live' } }
       );
-      return res.json({ message: `🔄 Round ${nextRound} promoted to live.`, matches: upcomingMatches });
+      return res.json({ message: `🔄 Round ${nextRound} promoted to live.`, matches: upcoming });
     }
 
-    res.json({ message: '✅ All rounds done or waiting for round to complete.' });
+    return res.json({ message: '✅ All matches handled. Waiting for completions.' });
 
   } catch (err) {
     console.error('AutoMatchmaking error:', err);
@@ -225,16 +284,17 @@ exports.autoMatchmaking = async (req, res) => {
   }
 };
 
-// 4. Set Match Winner
+// 4. Set Winner (adds +2 points and +1 win)
 exports.setMatchWinner = async (req, res) => {
   try {
     const { matchId } = req.params;
     const { winner } = req.body;
+
     const match = await Match.findById(matchId);
     if (!match) return res.status(404).json({ message: 'Match not found' });
 
     if (![match.player1, match.player2].includes(winner)) {
-      return res.status(400).json({ message: 'Invalid winner name' });
+      return res.status(400).json({ message: 'Invalid winner' });
     }
 
     match.winner = winner;
@@ -243,7 +303,10 @@ exports.setMatchWinner = async (req, res) => {
     await match.save();
 
     if (winner !== 'BYE') {
-      await Player.findOneAndUpdate({ name: winner, tournamentId: match.tournamentId }, { $inc: { points: 2 } });
+      await Player.findOneAndUpdate(
+        { name: winner, tournamentId: match.tournamentId },
+        { $inc: { points: 2, wins: 1 } }
+      );
     }
 
     res.json({ message: 'Winner set', match });
@@ -252,12 +315,7 @@ exports.setMatchWinner = async (req, res) => {
   }
 };
 
-// 5. Progress Knockout Stage (separate manual trigger — works fine)
-exports.progressKnockouts = async (req, res) => {
-  // already covered in previous version — skip or reuse
-};
-
-// 6. Get Match History
+// 5. Match History
 exports.getMatchHistory = async (req, res) => {
   try {
     const { tournamentId } = req.params;
