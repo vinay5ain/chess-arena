@@ -1,64 +1,64 @@
 const BACKEND_URL = 'https://chess-arena-l9c4.onrender.com';
 
 const playerId = localStorage.getItem('playerId');
-if (!playerId) {
+const playerName = localStorage.getItem('playerName');
+const tournamentId = localStorage.getItem('tournamentId'); // Store this on join/login
+
+if (!playerId || !playerName || !tournamentId) {
   window.location.href = 'join.html';
 }
 
-let playerName = '';
-
 async function fetchProfile() {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/player/profile/${playerId}`);
-    const data = await res.json();
+    // 🏆 Get leaderboard data
+    const leaderboardRes = await fetch(`${BACKEND_URL}/api/leaderboard/${tournamentId}`);
+    const leaderboard = await leaderboardRes.json();
 
-    if (!res.ok || !data) {
-      alert(data?.message || 'Player not found');
-      return;
-    }
+    const player = leaderboard.find(p => p.name.toLowerCase() === playerName.toLowerCase());
+    const wins = player?.wins || 0;
+    const losses = player?.losses || 0;
+    const totalMatches = wins + losses;
 
-    playerName = data.name;
-    document.getElementById('playerName').textContent = data.name ?? 'Unknown';
-    document.getElementById('playerId').textContent = data.playerId ?? 'N/A';
+    // 🧾 Fill profile summary
+    document.getElementById('playerName').textContent = playerName;
+    document.getElementById('playerId').textContent = playerId;
+    document.getElementById('tournamentName').textContent = tournamentId;
+    document.getElementById('totalWins').textContent = wins;
+    document.getElementById('totalLosses').textContent = losses;
+    document.getElementById('matchesPlayed').textContent = totalMatches;
 
-    if (data.tournamentId) {
-      const tourRes = await fetch(`${BACKEND_URL}/api/tournament/${data.tournamentId}`);
-      const tour = await tourRes.json();
-      document.getElementById('tournamentName').textContent = tour.tournamentName ?? 'Unknown';
-    }
-
-    fetchMatches();
+    // 📦 Load matches from admin APIs
+    await fetchMatches();
   } catch (err) {
-    console.error('❌ Failed to load profile:', err);
-    alert('Error loading profile.');
+    console.error('❌ Failed to load profile or leaderboard:', err);
+    alert('Error loading profile data.');
   }
 }
 
 async function fetchMatches() {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/matches/player/${playerId}`);
-    const data = await res.json();
+    const [liveRes, upcomingRes, pastRes] = await Promise.all([
+      fetch(`${BACKEND_URL}/api/matches/live/${tournamentId}`),
+      fetch(`${BACKEND_URL}/api/matches/upcoming/${tournamentId}`),
+      fetch(`${BACKEND_URL}/api/matches/past/${tournamentId}`)
+    ]);
 
-    if (!res.ok) {
-      renderMatchList('ongoingMatch', []);
-      renderMatchList('upcomingMatches', []);
-      renderMatchList('matchHistory', []);
-      return;
-    }
+    const live = await liveRes.json();
+    const upcoming = await upcomingRes.json();
+    const past = await pastRes.json();
 
-    const totalMatches = [...data.ongoing, ...data.upcoming, ...data.history];
-    const wins = data.history.filter(m => m.winner?.toLowerCase() === playerName.toLowerCase()).length;
-    const losses = data.history.length - wins;
+    const lowerName = playerName.toLowerCase();
 
-    document.getElementById('matchesPlayed').textContent = totalMatches.length;
-    document.getElementById('totalWins').textContent = wins;
-    document.getElementById('totalLosses').textContent = losses;
+    const filterMatches = (list) =>
+      list.filter(m =>
+        m.player1?.toLowerCase() === lowerName || m.player2?.toLowerCase() === lowerName
+      );
 
-    renderMatchList('ongoingMatch', data.ongoing || []);
-    renderMatchList('upcomingMatches', data.upcoming || []);
-    renderMatchList('matchHistory', data.history || []);
+    renderMatchList('ongoingMatch', filterMatches(live));
+    renderMatchList('upcomingMatches', filterMatches(upcoming));
+    renderMatchList('matchHistory', filterMatches(past));
   } catch (err) {
-    console.warn('⚠️ Match API failed or not implemented.');
+    console.warn('⚠️ Match fetch failed:', err);
     renderMatchList('ongoingMatch', []);
     renderMatchList('upcomingMatches', []);
     renderMatchList('matchHistory', []);
@@ -76,8 +76,8 @@ function renderMatchList(containerId, matches) {
 
   matches.forEach(match => {
     const li = document.createElement('li');
-    const p1 = match.player1Name || match.player1 || 'Player 1';
-    const p2 = match.player2Name || match.player2 || 'Player 2';
+    const p1 = match.player1 || 'Player 1';
+    const p2 = match.player2 || 'Player 2';
     const round = match.round ? ` (Round ${match.round})` : '';
     const winner = match.status === 'completed' && match.winner ? ` - Winner: ${match.winner}` : '';
     li.textContent = `${p1} vs ${p2}${round} — ${match.status}${winner}`;
@@ -90,5 +90,5 @@ function logout() {
   window.location.href = 'join.html';
 }
 
-// Start everything
+// Start
 fetchProfile();

@@ -1,28 +1,13 @@
-/* Global Styles */
 body {
   margin: 0;
-  padding: 0;
   font-family: 'Orbitron', sans-serif;
   background: url("background_image6.png") no-repeat center center fixed;
   background-size: cover;
   color: #ccc;
 }
 
-a {
-  color: #ccc;
-  text-decoration: none;
-}
-
-button {
-  cursor: pointer;
-  border: none;
-  outline: none;
-}
-
-/* Header */
 header {
-  background-color: rgba(91, 110, 105, 0.821);
-  color: rgb(215, 222, 8);
+  background-color: rgba(91, 110, 105, 0.85);
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
@@ -44,29 +29,34 @@ nav ul {
   display: flex;
   gap: 1.5rem;
   align-items: center;
-  margin: 0;
-  padding: 0;
 }
 
 nav ul li a {
-  position: relative;
   font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  color: #ccc;
-  transition: 0.3s ease-in-out;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+  color: #fff;
+  position: relative;
+  transition: 0.3s ease;
+}
+
+nav ul li a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 2px;
+  width: 0%;
+  background-color: #ffd700;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700;
+}
+
+nav ul li a:hover::after {
+  width: 100%;
 }
 
 nav ul li a:hover {
-  color: #fffb00;
-  text-shadow:
-    0 0 5px #fffb00,
-    0 0 10px #fffb00,
-    0 0 20px #fffb00,
-    0 0 30px #fffb00;
-  transform: scale(1.05);
+  color: #ffd700;
+  text-shadow: 0 0 5px #fff000;
 }
 
 .join-btn {
@@ -90,7 +80,6 @@ nav ul li a:hover {
   cursor: pointer;
 }
 
-/* Hero Section */
 .hero {
   text-align: center;
   padding: 3rem 1rem;
@@ -109,7 +98,6 @@ nav ul li a:hover {
   color: #ddd;
 }
 
-/* Sections */
 main section {
   background-color: rgba(0, 0, 0, 0.7);
   margin: 2rem auto;
@@ -129,15 +117,22 @@ main section p {
   line-height: 1.6;
 }
 
-/* Join Form */
 .login-form {
-  background-color: rgba(0, 0, 0, 0.8);
+  display: none;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.5s ease;
+  background-color: rgba(0, 0, 0, 0.85);
   padding: 2rem;
   max-width: 500px;
   margin: 2rem auto;
   border-radius: 20px;
-  display: none;
-  animation: fadeIn 0.5s ease;
+}
+
+.login-form.show {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .login-form h2 {
@@ -182,11 +177,6 @@ main section p {
   background-color: #0ff;
 }
 
-.hidden {
-  display: none;
-}
-
-/* Footer */
 footer {
   background-color: rgba(0, 0, 0, 0.9);
   text-align: center;
@@ -195,13 +185,6 @@ footer {
   font-size: 0.9rem;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Responsive */
 @media (max-width: 768px) {
   .hamburger {
     display: block;

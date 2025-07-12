@@ -3,67 +3,162 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Join / Login Tournament</title>
+  <title>Join or Login | Chess Arena</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <link rel="stylesheet" href="join.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="container">
+    <h2>♟ Chess Arena</h2>
+
+    <!-- Tabs -->
     <div class="tab-buttons">
-      <button id="tab-join" class="active"><i class="fas fa-chess-pawn"></i> Join</button>
-      <button id="tab-login"><i class="fas fa-chess-king"></i> Login</button>
+      <button id="tab-join" class="active">Join</button>
+      <button id="tab-login">Login</button>
     </div>
 
-    <!-- JOIN FORM -->
+    <!-- Join Section -->
     <div id="section-join" class="form-section active">
-      <h2>♞ Join Tournament</h2>
       <form id="joinForm">
-        <label><i class="fas fa-user"></i> Player Name:</label>
-        <input type="text" id="playerName" placeholder="e.g. Anil Sharma" required />
+        <label for="playerName">Name</label>
+        <input type="text" id="playerName" placeholder="Your Name" required />
 
-        <label><i class="fas fa-envelope"></i> Email:</label>
-        <input type="text" id="email" placeholder="e.g. anil@gmail.com" required />
+        <label for="email">Email</label>
+        <input type="text" id="email" placeholder="you@example" required />
 
-        <label><i class="fas fa-trophy"></i> Tournament Name:</label>
-        <input type="text" id="tournamentName" required />
+        <label for="tournamentName">Tournament Name</label>
+        <input type="text" id="tournamentName" placeholder="Tournament XYZ" required />
 
-        <label><i class="fas fa-chess-board"></i> Tournament Type:</label>
+        <label for="tournamentType">Type</label>
         <select id="tournamentType" required>
           <option value="public">Public</option>
           <option value="private">Private</option>
         </select>
 
-        <div id="entryFeeSection">
-          <label><i class="fas fa-coins"></i> Entry Fee:</label>
-          <input type="number" id="entryFee" placeholder="e.g. 100" />
-        </div>
-
         <div id="accessKeySection" class="hidden">
-          <label><i class="fas fa-key"></i> Access Key:</label>
-          <input type="text" id="accessKey" />
+          <label for="accessKey">Access Key</label>
+          <input type="text" id="accessKey" placeholder="Access Key" />
         </div>
 
-        <button type="submit" class="btn"><i class="fas fa-door-open"></i> Join Tournament</button>
+        <div id="entryFeeSection">
+          <label for="entryFee">Entry Fee</label>
+          <input type="number" id="entryFee" placeholder="0" min="0" />
+        </div>
+
+        <button type="submit" class="btn">Join Tournament</button>
         <div id="join-error" class="error"></div>
       </form>
     </div>
 
-    <!-- LOGIN FORM -->
+    <!-- Login Section -->
     <div id="section-login" class="form-section">
-      <h2>♚ Player Login</h2>
       <form id="loginForm">
-        <label><i class="fas fa-user"></i> Player Name:</label>
-        <input type="text" id="loginName" required />
+        <label for="loginName">Name</label>
+        <input type="text" id="loginName" placeholder="Your Name" required />
 
-        <label><i class="fas fa-id-badge"></i> Player ID:</label>
-        <input type="text" id="loginId" required />
+        <label for="loginId">Player ID</label>
+        <input type="text" id="loginId" placeholder="Your Player ID" required />
 
-        <button type="submit" class="btn"><i class="fas fa-sign-in-alt"></i> Login</button>
+        <button type="submit" class="btn">Login</button>
         <div id="login-error" class="error"></div>
       </form>
     </div>
   </div>
 
-  <script src="join.js"></script>
+  <script>
+    const backendURL = 'https://chess-arena-l9c4.onrender.com';
+
+    const tabJoin = document.getElementById('tab-join');
+    const tabLogin = document.getElementById('tab-login');
+    const secJoin = document.getElementById('section-join');
+    const secLogin = document.getElementById('section-login');
+
+    tabJoin.onclick = () => {
+      tabJoin.classList.add('active');
+      tabLogin.classList.remove('active');
+      secJoin.classList.add('active');
+      secLogin.classList.remove('active');
+    };
+
+    tabLogin.onclick = () => {
+      tabLogin.classList.add('active');
+      tabJoin.classList.remove('active');
+      secLogin.classList.add('active');
+      secJoin.classList.remove('active');
+    };
+
+    const typeSelect = document.getElementById('tournamentType');
+    const accessKeySection = document.getElementById('accessKeySection');
+    const entryFeeSection = document.getElementById('entryFeeSection');
+
+    typeSelect.addEventListener('change', () => {
+      const isPrivate = typeSelect.value === 'private';
+      accessKeySection.classList.toggle('hidden', !isPrivate);
+      entryFeeSection.classList.toggle('hidden', isPrivate);
+    });
+
+    // ✅ Join Tournament
+    document.getElementById('joinForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorEl = document.getElementById('join-error');
+      errorEl.textContent = '';
+
+      const playerName = document.getElementById('playerName').value.trim();
+      let email = document.getElementById('email').value.trim();
+      const tournamentName = document.getElementById('tournamentName').value.trim();
+      const isPrivate = typeSelect.value === 'private';
+      const accessKey = document.getElementById('accessKey').value.trim();
+      const entryFee = document.getElementById('entryFee').value;
+
+      if (!email.includes('@')) email += '@gmail.com';
+
+      try {
+        const res = await fetch(`${backendURL}/api/tournament/join`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ playerName, email, tournamentName, isPrivate, accessKey, entryFee })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || res.statusText);
+
+        alert('✅ Joined! Your Player ID: ' + data.player.playerId);
+        localStorage.setItem('playerId', data.player.playerId);
+        localStorage.setItem('playerName', data.player.name);
+        window.location.href = 'profile.html';
+      } catch (err) {
+        errorEl.textContent = '❌ ' + err.message;
+      }
+    });
+
+    // ✅ Login
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorEl = document.getElementById('login-error');
+      errorEl.textContent = '';
+
+      const loginName = document.getElementById('loginName').value.trim();
+      const loginId = document.getElementById('loginId').value.trim();
+
+      try {
+        const res = await fetch(`${backendURL}/api/player/profile/${encodeURIComponent(loginId)}`);
+        const player = await res.json();
+
+        if (!res.ok || !player.name) throw new Error(player.message || 'Player not found');
+
+        if (player.name.toLowerCase() !== loginName.toLowerCase()) {
+          throw new Error('Name and ID do not match');
+        }
+
+        localStorage.setItem('playerId', player.playerId);
+        localStorage.setItem('playerName', player.name);
+
+        alert('✅ Logged in!');
+        window.location.href = 'profile.html';
+      } catch (err) {
+        errorEl.textContent = '❌ ' + err.message;
+      }
+    });
+  </script>
 </body>
 </html>
