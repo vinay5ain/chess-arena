@@ -1,94 +1,110 @@
-const backendURL = 'https://chess-arena-l9c4.onrender.com';
+const BACKEND_URL = 'https://chess-arena-l9c4.onrender.com';
 
-const tabJoin = document.getElementById('tab-join');
-const tabLogin = document.getElementById('tab-login');
-const secJoin = document.getElementById('section-join');
-const secLogin = document.getElementById('section-login');
+const playerId = localStorage.getItem('playerId');
+const playerName = localStorage.getItem('playerName');
+const tournamentId = localStorage.getItem('tournamentId');
 
-tabJoin.onclick = () => {
-  tabJoin.classList.add('active');
-  tabLogin.classList.remove('active');
-  secJoin.classList.add('active');
-  secLogin.classList.remove('active');
-};
+if (!playerId || !playerName || !tournamentId) {
+  window.location.href = 'join.html';
+}
 
-tabLogin.onclick = () => {
-  tabLogin.classList.add('active');
-  tabJoin.classList.remove('active');
-  secLogin.classList.add('active');
-  secJoin.classList.remove('active');
-};
-
-const typeSelect = document.getElementById('tournamentType');
-const accessKeySection = document.getElementById('accessKeySection');
-const entryFeeSection = document.getElementById('entryFeeSection');
-
-typeSelect.addEventListener('change', () => {
-  const isPrivate = typeSelect.value === 'private';
-  accessKeySection.classList.toggle('hidden', !isPrivate);
-  entryFeeSection.classList.toggle('hidden', isPrivate);
-});
-
-// ✅ Join Tournament
-document.getElementById('joinForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const errorEl = document.getElementById('join-error');
-  errorEl.textContent = '';
-
-  const playerName = document.getElementById('playerName').value.trim();
-  let email = document.getElementById('email').value.trim();
-  const tournamentName = document.getElementById('tournamentName').value.trim();
-  const isPrivate = typeSelect.value === 'private';
-  const accessKey = document.getElementById('accessKey').value.trim();
-  const entryFee = document.getElementById('entryFee').value;
-
-  if (!email.includes('@')) email += '@gmail.com';
-
+async function fetchProfile() {
   try {
-    const res = await fetch(`${backendURL}/api/tournament/join`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerName, email, tournamentName, isPrivate, accessKey, entryFee })
-    });
+    // 🏆 Get leaderboard
+    const leaderboardRes = await fetch(`${BACKEND_URL}/api/admin/leaderboard/${tournamentId}`);
+    if (!leaderboardRes.ok) throw new Error('Leaderboard not found');
+    const leaderboard = await leaderboardRes.json();
 
+    const player = leaderboard.find(p => p.name.toLowerCase().includes(playerName.toLowerCase()));
+    const wins = player?.wins || 0;
+    const losses = player?.losses || 0;
+    const totalMatches = wins + losses;
+
+    // 🧾 Set player summary
+    document.getElementById('playerName').textContent = playerName;
+    document.getElementById('playerId').textContent = playerId;
+    document.getElementById('totalWins').textContent = wins;
+    document.getElementById('totalLosses').textContent = losses;
+    document.getElementById('matchesPlayed').textContent = totalMatches;
+
+    // 🏷️ Fetch tournament name
+    const tournamentName = await fetchTournamentName(tournamentId);
+    document.getElementById('tournamentName').textContent = tournamentName;
+
+    // 📦 Fetch matches
+    await fetchMatches();
+  } catch (err) {
+    console.error('❌ Error loading profile data:', err.message);
+    alert('Error loading profile data. Please try again later.');
+  }
+}
+
+async function fetchTournamentName(tournamentId) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/tournament/${tournamentId}`);
+    if (!res.ok) throw new Error('Tournament not found');
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || res.statusText);
-
-    alert('✅ Joined! Your Player ID: ' + data.player.playerId);
-    localStorage.setItem('playerId', data.player.playerId);
-    localStorage.setItem('playerName', data.player.name);
-    window.location.href = 'profile.html';
+    return data.name || tournamentId;
   } catch (err) {
-    errorEl.textContent = '❌ ' + err.message;
+    console.warn('⚠️ Tournament name fetch failed:', err.message);
+    return tournamentId;
   }
-});
+}
 
-// ✅ Login
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const errorEl = document.getElementById('login-error');
-  errorEl.textContent = '';
-
-  const loginName = document.getElementById('loginName').value.trim();
-  const loginId = document.getElementById('loginId').value.trim();
-
+async function fetchMatches() {
   try {
-    const res = await fetch(`${backendURL}/api/player/profile/${encodeURIComponent(loginId)}`);
-    const player = await res.json();
+    const [liveRes, upcomingRes, pastRes] = await Promise.all([
+      fetch(`${BACKEND_URL}/api/matches/live/${tournamentId}`),
+      fetch(`${BACKEND_URL}/api/matches/upcoming/${tournamentId}`),
+      fetch(`${BACKEND_URL}/api/matches/past/${tournamentId}`)
+    ]);
 
-    if (!res.ok || !player.name) throw new Error(player.message || 'Player not found');
+    const live = await liveRes.json();
+    const upcoming = await upcomingRes.json();
+    const past = await pastRes.json();
 
-    if (player.name.toLowerCase() !== loginName.toLowerCase()) {
-      throw new Error('Name and ID do not match');
-    }
+    const lowerName = playerName.toLowerCase();
 
-    localStorage.setItem('playerId', player.playerId);
-    localStorage.setItem('playerName', player.name);
-    localStorage.setItem('tournamentId', player.tournamentId); // ✅ ADD THIS
+    const filterMatches = (matches) =>
+      matches.filter(m =>
+        m.player1?.toLowerCase() === lowerName || m.player2?.toLowerCase() === lowerName
+      );
 
-    alert('✅ Logged in!');
-    window.location.href = 'profile.html';
+    renderMatchList('ongoingMatch', filterMatches(live));
+    renderMatchList('upcomingMatches', filterMatches(upcoming));
+    renderMatchList('matchHistory', filterMatches(past));
   } catch (err) {
-    errorEl.textContent = '❌ ' + err.message;
+    console.warn('⚠️ Match fetch failed:', err.message);
+    renderMatchList('ongoingMatch', []);
+    renderMatchList('upcomingMatches', []);
+    renderMatchList('matchHistory', []);
   }
-});
+}
+
+function renderMatchList(containerId, matches) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  if (!matches.length) {
+    container.innerHTML = '<li>No matches found.</li>';
+    return;
+  }
+
+  matches.forEach(match => {
+    const li = document.createElement('li');
+    const p1 = match.player1 || 'Player 1';
+    const p2 = match.player2 || 'Player 2';
+    const round = match.round ? ` (Round ${match.round})` : '';
+    const winner = match.status === 'completed' && match.winner ? ` - Winner: ${match.winner}` : '';
+    li.textContent = `${p1} vs ${p2}${round} — ${match.status}${winner}`;
+    container.appendChild(li);
+  });
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = 'join.html';
+}
+
+// 🚀 Load profile on page load
+fetchProfile();
