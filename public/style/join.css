@@ -15,7 +15,7 @@ html {
 
 body {
   font-family: 'Poppins', sans-serif;
-  background: url('./background_image_3.png') no-repeat center center fixed;
+  background: url('./image/background_image_3.png') no-repeat center center fixed;
   background-size: cover;
   margin: 0;
   display: flex;
