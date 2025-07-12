@@ -84,6 +84,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
     localStorage.setItem('playerId', player.playerId);
     localStorage.setItem('playerName', player.name);
+    localStorage.setItem('tournamentId', player.tournamentId); // ✅ ADD THIS
 
     alert('✅ Logged in!');
     window.location.href = 'profile.html';
