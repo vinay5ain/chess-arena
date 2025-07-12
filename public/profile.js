@@ -1,20 +1,25 @@
 const BACKEND_URL = 'https://chess-arena-l9c4.onrender.com';
 
+// 🔐 Validate player session
 const playerId = localStorage.getItem('playerId');
 const playerName = localStorage.getItem('playerName');
-const tournamentId = localStorage.getItem('tournamentId'); // Store this on join/login
+const tournamentId = localStorage.getItem('tournamentId');
 
 if (!playerId || !playerName || !tournamentId) {
   window.location.href = 'join.html';
 }
 
+// 🚀 Start loading profile
+fetchProfile();
+
 async function fetchProfile() {
   try {
-    // 🏆 Get leaderboard data
+    // 🏆 Fetch leaderboard
     const leaderboardRes = await fetch(`${BACKEND_URL}/api/leaderboard/${tournamentId}`);
+    if (!leaderboardRes.ok) throw new Error('Leaderboard fetch failed');
     const leaderboard = await leaderboardRes.json();
 
-    const player = leaderboard.find(p => p.name.toLowerCase() === playerName.toLowerCase());
+    const player = leaderboard.find(p => p.name?.toLowerCase() === playerName.toLowerCase());
     const wins = player?.wins || 0;
     const losses = player?.losses || 0;
     const totalMatches = wins + losses;
@@ -27,15 +32,15 @@ async function fetchProfile() {
     document.getElementById('totalLosses').textContent = losses;
     document.getElementById('matchesPlayed').textContent = totalMatches;
 
-    // 📦 Load matches from admin APIs
-    await fetchMatches();
+    // 📦 Fetch matches from admin routes
+    await fetchAndRenderMatches();
   } catch (err) {
-    console.error('❌ Failed to load profile or leaderboard:', err);
-    alert('Error loading profile data.');
+    console.error('❌ Failed to load profile:', err);
+    alert('Error loading profile data. Please try again later.');
   }
 }
 
-async function fetchMatches() {
+async function fetchAndRenderMatches() {
   try {
     const [liveRes, upcomingRes, pastRes] = await Promise.all([
       fetch(`${BACKEND_URL}/api/matches/live/${tournamentId}`),
@@ -49,10 +54,9 @@ async function fetchMatches() {
 
     const lowerName = playerName.toLowerCase();
 
-    const filterMatches = (list) =>
-      list.filter(m =>
-        m.player1?.toLowerCase() === lowerName || m.player2?.toLowerCase() === lowerName
-      );
+    const filterMatches = (matches) => matches.filter(
+      m => m.player1?.toLowerCase() === lowerName || m.player2?.toLowerCase() === lowerName
+    );
 
     renderMatchList('ongoingMatch', filterMatches(live));
     renderMatchList('upcomingMatches', filterMatches(upcoming));
@@ -79,8 +83,9 @@ function renderMatchList(containerId, matches) {
     const p1 = match.player1 || 'Player 1';
     const p2 = match.player2 || 'Player 2';
     const round = match.round ? ` (Round ${match.round})` : '';
+    const status = match.status || 'unknown';
     const winner = match.status === 'completed' && match.winner ? ` - Winner: ${match.winner}` : '';
-    li.textContent = `${p1} vs ${p2}${round} — ${match.status}${winner}`;
+    li.textContent = `${p1} vs ${p2}${round} — ${status}${winner}`;
     container.appendChild(li);
   });
 }
@@ -89,6 +94,3 @@ function logout() {
   localStorage.clear();
   window.location.href = 'join.html';
 }
-
-// Start
-fetchProfile();
