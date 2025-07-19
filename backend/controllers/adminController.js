@@ -256,9 +256,17 @@ exports.setMatchWinner = async (req, res) => {
     await match.save();
 
     if (winner !== 'BYE') {
+      // Update winner
       await Player.findOneAndUpdate(
         { name: winner, tournamentId: match.tournamentId },
         { $inc: { points: 2, wins: 1 } }
+      );
+
+      // Identify and update loser
+      const loser = winner === match.player1 ? match.player2 : match.player1;
+      await Player.findOneAndUpdate(
+        { name: loser, tournamentId: match.tournamentId },
+        { $inc: { losses: 1 } }
       );
     }
 
