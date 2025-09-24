@@ -76,14 +76,3 @@ Open http://localhost:3000 in your browser.
 <img width="1906" height="616" alt="image" src="https://github.com/user-attachments/assets/a9de659a-596c-4808-ba79-9928858141ad" />
 <img width="1771" height="891" alt="image" src="https://github.com/user-attachments/assets/59e6cdb3-e88b-4f67-a4d6-d6c19adb0526" />
 <img width="1750" height="657" alt="image" src="https://github.com/user-attachments/assets/506efec8-1ec9-43db-a01e-cb0f62373bae" />
-
-
-
-
-
-
-
-
-
-
-(Add screenshots of your app here for better presentation)
